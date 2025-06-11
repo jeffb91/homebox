@@ -118,6 +118,20 @@ func (mec *MaintenanceEntryCreate) SetNillableCost(f *float64) *MaintenanceEntry
 	return mec
 }
 
+// SetMeasurement sets the "measurement" field.
+func (mec *MaintenanceEntryCreate) SetMeasurement(s string) *MaintenanceEntryCreate {
+	mec.mutation.SetMeasurement(s)
+	return mec
+}
+
+// SetNillableMeasurement sets the "measurement" field if the given value is not nil.
+func (mec *MaintenanceEntryCreate) SetNillableMeasurement(s *string) *MaintenanceEntryCreate {
+	if s != nil {
+		mec.SetMeasurement(*s)
+	}
+	return mec
+}
+
 // SetID sets the "id" field.
 func (mec *MaintenanceEntryCreate) SetID(u uuid.UUID) *MaintenanceEntryCreate {
 	mec.mutation.SetID(u)
@@ -282,6 +296,10 @@ func (mec *MaintenanceEntryCreate) createSpec() (*MaintenanceEntry, *sqlgraph.Cr
 	if value, ok := mec.mutation.Cost(); ok {
 		_spec.SetField(maintenanceentry.FieldCost, field.TypeFloat64, value)
 		_node.Cost = value
+	}
+	if value, ok := mec.mutation.Measurement(); ok {
+		_spec.SetField(maintenanceentry.FieldMeasurement, field.TypeString, value)
+		_node.Measurement = value
 	}
 	if nodes := mec.mutation.ItemIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

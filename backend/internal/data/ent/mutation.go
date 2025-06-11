@@ -8439,6 +8439,7 @@ type MaintenanceEntryMutation struct {
 	description    *string
 	cost           *float64
 	addcost        *float64
+	measurement    *string
 	clearedFields  map[string]struct{}
 	item           *uuid.UUID
 	cleareditem    bool
@@ -8898,6 +8899,55 @@ func (m *MaintenanceEntryMutation) ResetCost() {
 	m.addcost = nil
 }
 
+// SetMeasurement sets the "measurement" field.
+func (m *MaintenanceEntryMutation) SetMeasurement(s string) {
+	m.measurement = &s
+}
+
+// Measurement returns the value of the "measurement" field in the mutation.
+func (m *MaintenanceEntryMutation) Measurement() (r string, exists bool) {
+	v := m.measurement
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMeasurement returns the old "measurement" field's value of the MaintenanceEntry entity.
+// If the MaintenanceEntry object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MaintenanceEntryMutation) OldMeasurement(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMeasurement is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMeasurement requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMeasurement: %w", err)
+	}
+	return oldValue.Measurement, nil
+}
+
+// ClearMeasurement clears the value of the "measurement" field.
+func (m *MaintenanceEntryMutation) ClearMeasurement() {
+	m.measurement = nil
+	m.clearedFields[maintenanceentry.FieldMeasurement] = struct{}{}
+}
+
+// MeasurementCleared returns if the "measurement" field was cleared in this mutation.
+func (m *MaintenanceEntryMutation) MeasurementCleared() bool {
+	_, ok := m.clearedFields[maintenanceentry.FieldMeasurement]
+	return ok
+}
+
+// ResetMeasurement resets all changes to the "measurement" field.
+func (m *MaintenanceEntryMutation) ResetMeasurement() {
+	m.measurement = nil
+	delete(m.clearedFields, maintenanceentry.FieldMeasurement)
+}
+
 // ClearItem clears the "item" edge to the Item entity.
 func (m *MaintenanceEntryMutation) ClearItem() {
 	m.cleareditem = true
@@ -8959,7 +9009,7 @@ func (m *MaintenanceEntryMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *MaintenanceEntryMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 9)
 	if m.created_at != nil {
 		fields = append(fields, maintenanceentry.FieldCreatedAt)
 	}
@@ -8983,6 +9033,9 @@ func (m *MaintenanceEntryMutation) Fields() []string {
 	}
 	if m.cost != nil {
 		fields = append(fields, maintenanceentry.FieldCost)
+	}
+	if m.measurement != nil {
+		fields = append(fields, maintenanceentry.FieldMeasurement)
 	}
 	return fields
 }
@@ -9008,6 +9061,8 @@ func (m *MaintenanceEntryMutation) Field(name string) (ent.Value, bool) {
 		return m.Description()
 	case maintenanceentry.FieldCost:
 		return m.Cost()
+	case maintenanceentry.FieldMeasurement:
+		return m.Measurement()
 	}
 	return nil, false
 }
@@ -9033,6 +9088,8 @@ func (m *MaintenanceEntryMutation) OldField(ctx context.Context, name string) (e
 		return m.OldDescription(ctx)
 	case maintenanceentry.FieldCost:
 		return m.OldCost(ctx)
+	case maintenanceentry.FieldMeasurement:
+		return m.OldMeasurement(ctx)
 	}
 	return nil, fmt.Errorf("unknown MaintenanceEntry field %s", name)
 }
@@ -9098,6 +9155,13 @@ func (m *MaintenanceEntryMutation) SetField(name string, value ent.Value) error 
 		}
 		m.SetCost(v)
 		return nil
+	case maintenanceentry.FieldMeasurement:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMeasurement(v)
+		return nil
 	}
 	return fmt.Errorf("unknown MaintenanceEntry field %s", name)
 }
@@ -9152,6 +9216,9 @@ func (m *MaintenanceEntryMutation) ClearedFields() []string {
 	if m.FieldCleared(maintenanceentry.FieldDescription) {
 		fields = append(fields, maintenanceentry.FieldDescription)
 	}
+	if m.FieldCleared(maintenanceentry.FieldMeasurement) {
+		fields = append(fields, maintenanceentry.FieldMeasurement)
+	}
 	return fields
 }
 
@@ -9174,6 +9241,9 @@ func (m *MaintenanceEntryMutation) ClearField(name string) error {
 		return nil
 	case maintenanceentry.FieldDescription:
 		m.ClearDescription()
+		return nil
+	case maintenanceentry.FieldMeasurement:
+		m.ClearMeasurement()
 		return nil
 	}
 	return fmt.Errorf("unknown MaintenanceEntry nullable field %s", name)
@@ -9206,6 +9276,9 @@ func (m *MaintenanceEntryMutation) ResetField(name string) error {
 		return nil
 	case maintenanceentry.FieldCost:
 		m.ResetCost()
+		return nil
+	case maintenanceentry.FieldMeasurement:
+		m.ResetMeasurement()
 		return nil
 	}
 	return fmt.Errorf("unknown MaintenanceEntry field %s", name)

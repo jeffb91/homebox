@@ -27,6 +27,7 @@ type MaintenanceEntryCreate struct {
 	Name          string     `json:"name"          validate:"required"`
 	Description   string     `json:"description"`
 	Cost          float64    `json:"cost,string"`
+	Measurement	  string 	 `json:"measurement"`
 }
 
 func (mc MaintenanceEntryCreate) Validate() error {
@@ -42,6 +43,7 @@ type MaintenanceEntryUpdate struct {
 	Name          string     `json:"name"`
 	Description   string     `json:"description"`
 	Cost          float64    `json:"cost,string"`
+	Measurement   string 	 `json:"measurement"`
 }
 
 func (mu MaintenanceEntryUpdate) Validate() error {
@@ -59,6 +61,7 @@ type (
 		Name          string     `json:"name"`
 		Description   string     `json:"description"`
 		Cost          float64    `json:"cost,string"`
+		Measurement   string 	 `json:"measurement"`
 	}
 )
 
@@ -75,6 +78,7 @@ func mapMaintenanceEntry(entry *ent.MaintenanceEntry) MaintenanceEntry {
 		Name:          entry.Name,
 		Description:   entry.Description,
 		Cost:          entry.Cost,
+		Measurement:   entry.Measurement,
 	}
 }
 
@@ -107,6 +111,7 @@ func (r *MaintenanceEntryRepository) Create(ctx context.Context, itemID uuid.UUI
 		SetName(input.Name).
 		SetDescription(input.Description).
 		SetCost(input.Cost).
+		SetMeasurement(input.Measurement).
 		Save(ctx)
 
 	return mapMaintenanceEntryErr(item, err)
@@ -119,6 +124,7 @@ func (r *MaintenanceEntryRepository) Update(ctx context.Context, id uuid.UUID, i
 		SetName(input.Name).
 		SetDescription(input.Description).
 		SetCost(input.Cost).
+		SetMeasurement(input.Measurement).
 		Save(ctx)
 
 	return mapMaintenanceEntryErr(item, err)

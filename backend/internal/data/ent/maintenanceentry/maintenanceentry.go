@@ -31,6 +31,8 @@ const (
 	FieldDescription = "description"
 	// FieldCost holds the string denoting the cost field in the database.
 	FieldCost = "cost"
+	// FieldMeasurement holds the string denoting the measurement field in the database.
+	FieldMeasurement = "measurement"
 	// EdgeItem holds the string denoting the item edge name in mutations.
 	EdgeItem = "item"
 	// Table holds the table name of the maintenanceentry in the database.
@@ -55,6 +57,7 @@ var Columns = []string{
 	FieldName,
 	FieldDescription,
 	FieldCost,
+	FieldMeasurement,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -130,6 +133,11 @@ func ByDescription(opts ...sql.OrderTermOption) OrderOption {
 // ByCost orders the results by the cost field.
 func ByCost(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCost, opts...).ToFunc()
+}
+
+// ByMeasurement orders the results by the measurement field.
+func ByMeasurement(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldMeasurement, opts...).ToFunc()
 }
 
 // ByItemField orders the results by item field.

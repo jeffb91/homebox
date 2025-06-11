@@ -145,6 +145,26 @@ func (meu *MaintenanceEntryUpdate) AddCost(f float64) *MaintenanceEntryUpdate {
 	return meu
 }
 
+// SetMeasurement sets the "measurement" field.
+func (meu *MaintenanceEntryUpdate) SetMeasurement(s string) *MaintenanceEntryUpdate {
+	meu.mutation.SetMeasurement(s)
+	return meu
+}
+
+// SetNillableMeasurement sets the "measurement" field if the given value is not nil.
+func (meu *MaintenanceEntryUpdate) SetNillableMeasurement(s *string) *MaintenanceEntryUpdate {
+	if s != nil {
+		meu.SetMeasurement(*s)
+	}
+	return meu
+}
+
+// ClearMeasurement clears the value of the "measurement" field.
+func (meu *MaintenanceEntryUpdate) ClearMeasurement() *MaintenanceEntryUpdate {
+	meu.mutation.ClearMeasurement()
+	return meu
+}
+
 // SetItem sets the "item" edge to the Item entity.
 func (meu *MaintenanceEntryUpdate) SetItem(i *Item) *MaintenanceEntryUpdate {
 	return meu.SetItemID(i.ID)
@@ -256,6 +276,12 @@ func (meu *MaintenanceEntryUpdate) sqlSave(ctx context.Context) (n int, err erro
 	}
 	if value, ok := meu.mutation.AddedCost(); ok {
 		_spec.AddField(maintenanceentry.FieldCost, field.TypeFloat64, value)
+	}
+	if value, ok := meu.mutation.Measurement(); ok {
+		_spec.SetField(maintenanceentry.FieldMeasurement, field.TypeString, value)
+	}
+	if meu.mutation.MeasurementCleared() {
+		_spec.ClearField(maintenanceentry.FieldMeasurement, field.TypeString)
 	}
 	if meu.mutation.ItemCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -421,6 +447,26 @@ func (meuo *MaintenanceEntryUpdateOne) AddCost(f float64) *MaintenanceEntryUpdat
 	return meuo
 }
 
+// SetMeasurement sets the "measurement" field.
+func (meuo *MaintenanceEntryUpdateOne) SetMeasurement(s string) *MaintenanceEntryUpdateOne {
+	meuo.mutation.SetMeasurement(s)
+	return meuo
+}
+
+// SetNillableMeasurement sets the "measurement" field if the given value is not nil.
+func (meuo *MaintenanceEntryUpdateOne) SetNillableMeasurement(s *string) *MaintenanceEntryUpdateOne {
+	if s != nil {
+		meuo.SetMeasurement(*s)
+	}
+	return meuo
+}
+
+// ClearMeasurement clears the value of the "measurement" field.
+func (meuo *MaintenanceEntryUpdateOne) ClearMeasurement() *MaintenanceEntryUpdateOne {
+	meuo.mutation.ClearMeasurement()
+	return meuo
+}
+
 // SetItem sets the "item" edge to the Item entity.
 func (meuo *MaintenanceEntryUpdateOne) SetItem(i *Item) *MaintenanceEntryUpdateOne {
 	return meuo.SetItemID(i.ID)
@@ -562,6 +608,12 @@ func (meuo *MaintenanceEntryUpdateOne) sqlSave(ctx context.Context) (_node *Main
 	}
 	if value, ok := meuo.mutation.AddedCost(); ok {
 		_spec.AddField(maintenanceentry.FieldCost, field.TypeFloat64, value)
+	}
+	if value, ok := meuo.mutation.Measurement(); ok {
+		_spec.SetField(maintenanceentry.FieldMeasurement, field.TypeString, value)
+	}
+	if meuo.mutation.MeasurementCleared() {
+		_spec.ClearField(maintenanceentry.FieldMeasurement, field.TypeString)
 	}
 	if meuo.mutation.ItemCleared() {
 		edge := &sqlgraph.EdgeSpec{
