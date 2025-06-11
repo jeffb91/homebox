@@ -8,27 +8,29 @@ import (
 
 // AllRepos is a container for all the repository interfaces
 type AllRepos struct {
-	Users       *UserRepository
-	AuthTokens  *TokenRepository
-	Groups      *GroupRepository
-	Locations   *LocationRepository
-	Labels      *LabelRepository
-	Items       *ItemsRepository
-	Attachments *AttachmentRepo
-	MaintEntry  *MaintenanceEntryRepository
-	Notifiers   *NotifierRepository
+	Users            *UserRepository
+	AuthTokens       *TokenRepository
+	Groups           *GroupRepository
+	Locations        *LocationRepository
+	Labels           *LabelRepository
+	Items            *ItemsRepository
+	Attachments      *AttachmentRepo
+	MaintEntry       *MaintenanceEntryRepository
+	MaintAttachments *MaintenanceAttachmentRepo
+	Notifiers        *NotifierRepository
 }
 
 func New(db *ent.Client, bus *eventbus.EventBus, root string) *AllRepos {
 	return &AllRepos{
-		Users:       &UserRepository{db},
-		AuthTokens:  &TokenRepository{db},
-		Groups:      NewGroupRepository(db),
-		Locations:   &LocationRepository{db, bus},
-		Labels:      &LabelRepository{db, bus},
-		Items:       &ItemsRepository{db, bus},
-		Attachments: &AttachmentRepo{db, root},
-		MaintEntry:  &MaintenanceEntryRepository{db},
-		Notifiers:   NewNotifierRepository(db),
+		Users:            &UserRepository{db},
+		AuthTokens:       &TokenRepository{db},
+		Groups:           NewGroupRepository(db),
+		Locations:        &LocationRepository{db, bus},
+		Labels:           &LabelRepository{db, bus},
+		Items:            &ItemsRepository{db, bus},
+		Attachments:      &AttachmentRepo{db, root},
+		MaintEntry:       &MaintenanceEntryRepository{db},
+		MaintAttachments: NewMaintenanceAttachmentRepo(db, root),
+		Notifiers:        NewNotifierRepository(db),
 	}
 }

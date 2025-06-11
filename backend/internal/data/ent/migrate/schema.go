@@ -302,6 +302,7 @@ var (
 		{Name: "name", Type: field.TypeString, Size: 255},
 		{Name: "description", Type: field.TypeString, Nullable: true, Size: 2500},
 		{Name: "cost", Type: field.TypeFloat64, Default: 0},
+		{Name: "measurement", Type: field.TypeString, Nullable: true},
 		{Name: "item_id", Type: field.TypeUUID},
 	}
 	// MaintenanceEntriesTable holds the schema information for the "maintenance_entries" table.
@@ -312,9 +313,31 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "maintenance_entries_items_maintenance_entries",
-				Columns:    []*schema.Column{MaintenanceEntriesColumns[8]},
+				Columns:    []*schema.Column{MaintenanceEntriesColumns[9]},
 				RefColumns: []*schema.Column{ItemsColumns[0]},
 				OnDelete:   schema.Cascade,
+			},
+		},
+	}
+	// MaintenanceEntryAttachmentsColumns holds the columns for the "maintenance_entry_attachments" table.
+	MaintenanceEntryAttachmentsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "filename", Type: field.TypeString},
+		{Name: "filepath", Type: field.TypeString},
+		{Name: "uploaded_at", Type: field.TypeTime},
+		{Name: "maintenance_entry_attachments", Type: field.TypeUUID},
+	}
+	// MaintenanceEntryAttachmentsTable holds the schema information for the "maintenance_entry_attachments" table.
+	MaintenanceEntryAttachmentsTable = &schema.Table{
+		Name:       "maintenance_entry_attachments",
+		Columns:    MaintenanceEntryAttachmentsColumns,
+		PrimaryKey: []*schema.Column{MaintenanceEntryAttachmentsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "maintenance_entry_attachments_maintenance_entries_attachments",
+				Columns:    []*schema.Column{MaintenanceEntryAttachmentsColumns[4]},
+				RefColumns: []*schema.Column{MaintenanceEntriesColumns[0]},
+				OnDelete:   schema.NoAction,
 			},
 		},
 	}
@@ -436,6 +459,7 @@ var (
 		LabelsTable,
 		LocationsTable,
 		MaintenanceEntriesTable,
+		MaintenanceEntryAttachmentsTable,
 		NotifiersTable,
 		UsersTable,
 		LabelItemsTable,
@@ -455,6 +479,7 @@ func init() {
 	LocationsTable.ForeignKeys[0].RefTable = GroupsTable
 	LocationsTable.ForeignKeys[1].RefTable = LocationsTable
 	MaintenanceEntriesTable.ForeignKeys[0].RefTable = ItemsTable
+	MaintenanceEntryAttachmentsTable.ForeignKeys[0].RefTable = MaintenanceEntriesTable
 	NotifiersTable.ForeignKeys[0].RefTable = GroupsTable
 	NotifiersTable.ForeignKeys[1].RefTable = UsersTable
 	UsersTable.ForeignKeys[0].RefTable = GroupsTable

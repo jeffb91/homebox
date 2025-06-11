@@ -318,7 +318,8 @@
             "new_action": "Maak",
             "new_title": "Nieuwe invoer",
             "notes": "Opmerkingen",
-            "scheduled_date": "Geplande datum"
+            "scheduled_date": "Geplande datum",
+            "measurement": "Meetwaarde"
         },
         "monthly_average": "Maandelijks",
         "toast": {

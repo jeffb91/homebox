@@ -12,7 +12,10 @@
         <DatePicker v-model="entry.completedDate" :label="$t('maintenance.modal.completed_date')" />
         <DatePicker v-model="entry.scheduledDate" :label="$t('maintenance.modal.scheduled_date')" />
         <FormTextArea v-model="entry.description" :label="$t('maintenance.modal.notes')" />
+        <FormTextField v-model="entry.measurement" :label="$t('maintenance.modal.measurement')" />
         <FormTextField v-model="entry.cost" autofocus :label="$t('maintenance.modal.cost')" />
+
+
 
         <DialogFooter>
           <Button type="submit">
@@ -48,6 +51,7 @@
     scheduledDate: null as Date | null,
     description: "",
     cost: "",
+    measurement: "", // ✅ nieuw veld
     itemId: null as string | null,
   });
 
@@ -69,6 +73,7 @@
       completedDate: entry.completedDate ?? "",
       scheduledDate: entry.scheduledDate ?? "",
       description: entry.description,
+      measurement: entry.measurement, 
       cost: parseFloat(entry.cost) ? entry.cost : "0",
     });
 
@@ -91,6 +96,7 @@
       completedDate: entry.completedDate ?? "null",
       scheduledDate: entry.scheduledDate ?? "null",
       description: entry.description,
+      measurement: entry.measurement,
       cost: entry.cost,
     });
 
@@ -110,6 +116,7 @@
     entry.scheduledDate = null;
     entry.description = "";
     entry.cost = "";
+    entry.measurement = "";
     entry.itemId = itemId;
     openDialog("edit-maintenance");
   };
@@ -121,6 +128,7 @@
     entry.scheduledDate = new Date(maintenanceEntry.scheduledDate);
     entry.description = maintenanceEntry.description;
     entry.cost = maintenanceEntry.cost;
+    entry.measurement = maintenanceEntry.measurement;
     entry.itemId = null;
     openDialog("edit-maintenance");
   };
@@ -148,6 +156,7 @@
       completedDate: new Date(Date.now()),
       scheduledDate: maintenanceEntry.scheduledDate ?? "null",
       description: maintenanceEntry.description,
+      measurement: maintenanceEntry.measurement,
       cost: maintenanceEntry.cost,
     });
     if (error) {
@@ -163,6 +172,7 @@
     entry.scheduledDate = null;
     entry.description = maintenanceEntry.description;
     entry.cost = maintenanceEntry.cost;
+    entry.measurement = null;
     entry.itemId = itemId;
     openDialog("edit-maintenance");
   }

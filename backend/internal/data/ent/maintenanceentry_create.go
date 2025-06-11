@@ -13,6 +13,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/item"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/maintenanceentry"
+	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/maintenanceentryattachment"
 )
 
 // MaintenanceEntryCreate is the builder for creating a MaintenanceEntry entity.
@@ -118,6 +119,20 @@ func (mec *MaintenanceEntryCreate) SetNillableCost(f *float64) *MaintenanceEntry
 	return mec
 }
 
+// SetMeasurement sets the "measurement" field.
+func (mec *MaintenanceEntryCreate) SetMeasurement(s string) *MaintenanceEntryCreate {
+	mec.mutation.SetMeasurement(s)
+	return mec
+}
+
+// SetNillableMeasurement sets the "measurement" field if the given value is not nil.
+func (mec *MaintenanceEntryCreate) SetNillableMeasurement(s *string) *MaintenanceEntryCreate {
+	if s != nil {
+		mec.SetMeasurement(*s)
+	}
+	return mec
+}
+
 // SetID sets the "id" field.
 func (mec *MaintenanceEntryCreate) SetID(u uuid.UUID) *MaintenanceEntryCreate {
 	mec.mutation.SetID(u)
@@ -135,6 +150,21 @@ func (mec *MaintenanceEntryCreate) SetNillableID(u *uuid.UUID) *MaintenanceEntry
 // SetItem sets the "item" edge to the Item entity.
 func (mec *MaintenanceEntryCreate) SetItem(i *Item) *MaintenanceEntryCreate {
 	return mec.SetItemID(i.ID)
+}
+
+// AddAttachmentIDs adds the "attachments" edge to the MaintenanceEntryAttachment entity by IDs.
+func (mec *MaintenanceEntryCreate) AddAttachmentIDs(ids ...int) *MaintenanceEntryCreate {
+	mec.mutation.AddAttachmentIDs(ids...)
+	return mec
+}
+
+// AddAttachments adds the "attachments" edges to the MaintenanceEntryAttachment entity.
+func (mec *MaintenanceEntryCreate) AddAttachments(m ...*MaintenanceEntryAttachment) *MaintenanceEntryCreate {
+	ids := make([]int, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return mec.AddAttachmentIDs(ids...)
 }
 
 // Mutation returns the MaintenanceEntryMutation object of the builder.
@@ -283,6 +313,10 @@ func (mec *MaintenanceEntryCreate) createSpec() (*MaintenanceEntry, *sqlgraph.Cr
 		_spec.SetField(maintenanceentry.FieldCost, field.TypeFloat64, value)
 		_node.Cost = value
 	}
+	if value, ok := mec.mutation.Measurement(); ok {
+		_spec.SetField(maintenanceentry.FieldMeasurement, field.TypeString, value)
+		_node.Measurement = value
+	}
 	if nodes := mec.mutation.ItemIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -298,6 +332,22 @@ func (mec *MaintenanceEntryCreate) createSpec() (*MaintenanceEntry, *sqlgraph.Cr
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.ItemID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := mec.mutation.AttachmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   maintenanceentry.AttachmentsTable,
+			Columns: []string{maintenanceentry.AttachmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(maintenanceentryattachment.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

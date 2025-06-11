@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/rs/zerolog/log"
-	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/group"
-	"github.com/zeebo/blake3"
 	"io"
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/rs/zerolog/log"
+	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/group"
+	"github.com/zeebo/blake3"
 
 	"github.com/google/uuid"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent"

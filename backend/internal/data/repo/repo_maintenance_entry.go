@@ -11,6 +11,7 @@ import (
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/group"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/item"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/maintenanceentry"
+	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/maintenanceentryattachment"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/types"
 )
 
@@ -27,6 +28,7 @@ type MaintenanceEntryCreate struct {
 	Name          string     `json:"name"          validate:"required"`
 	Description   string     `json:"description"`
 	Cost          float64    `json:"cost,string"`
+	Measurement   string     `json:"measurement"`
 }
 
 func (mc MaintenanceEntryCreate) Validate() error {
@@ -42,6 +44,7 @@ type MaintenanceEntryUpdate struct {
 	Name          string     `json:"name"`
 	Description   string     `json:"description"`
 	Cost          float64    `json:"cost,string"`
+	Measurement   string     `json:"measurement"`
 }
 
 func (mu MaintenanceEntryUpdate) Validate() error {
@@ -59,6 +62,7 @@ type (
 		Name          string     `json:"name"`
 		Description   string     `json:"description"`
 		Cost          float64    `json:"cost,string"`
+		Measurement   string     `json:"measurement"`
 	}
 )
 
@@ -75,6 +79,7 @@ func mapMaintenanceEntry(entry *ent.MaintenanceEntry) MaintenanceEntry {
 		Name:          entry.Name,
 		Description:   entry.Description,
 		Cost:          entry.Cost,
+		Measurement:   entry.Measurement,
 	}
 }
 
@@ -107,6 +112,7 @@ func (r *MaintenanceEntryRepository) Create(ctx context.Context, itemID uuid.UUI
 		SetName(input.Name).
 		SetDescription(input.Description).
 		SetCost(input.Cost).
+		SetMeasurement(input.Measurement).
 		Save(ctx)
 
 	return mapMaintenanceEntryErr(item, err)
@@ -119,6 +125,7 @@ func (r *MaintenanceEntryRepository) Update(ctx context.Context, id uuid.UUID, i
 		SetName(input.Name).
 		SetDescription(input.Description).
 		SetCost(input.Cost).
+		SetMeasurement(input.Measurement).
 		Save(ctx)
 
 	return mapMaintenanceEntryErr(item, err)
@@ -171,4 +178,38 @@ func (r *MaintenanceEntryRepository) GetMaintenanceByItemID(ctx context.Context,
 
 func (r *MaintenanceEntryRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	return r.db.MaintenanceEntry.DeleteOneID(id).Exec(ctx)
+}
+
+type MaintenanceEntryAttachmentCreate struct {
+	Filename    string
+	ContentType string
+	Path        string
+}
+
+func (r *MaintenanceEntryRepository) AddAttachment(ctx context.Context, entryID uuid.UUID, input MaintenanceEntryAttachmentCreate) error {
+	_, err := r.db.MaintenanceEntryAttachment.Create().
+		SetMaintenanceEntryID(entryID).
+		SetFilename(input.Filename).
+		SetContentType(input.ContentType).
+		SetPath(input.Path).
+		Save(ctx)
+
+	return err
+}
+
+func (r *MaintenanceEntryRepository) GetAttachments(ctx context.Context, entryID uuid.UUID) ([]*ent.MaintenanceEntryAttachment, error) {
+	return r.db.MaintenanceEntryAttachment.
+		Query().
+		Where(maintenanceentryattachment.MaintenanceEntryID(entryID)).
+		All(ctx)
+}
+
+func (r *MaintenanceEntryRepository) GetAttachment(ctx context.Context, attachmentID uuid.UUID) (*ent.MaintenanceEntryAttachment, error) {
+	return r.db.MaintenanceEntryAttachment.Get(ctx, attachmentID)
+}
+
+func (r *MaintenanceEntryRepository) DeleteAttachment(ctx context.Context, entryID, attachmentID uuid.UUID) error {
+	return r.db.MaintenanceEntryAttachment.
+		DeleteOneID(attachmentID).
+		Exec(ctx)
 }

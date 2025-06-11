@@ -22,6 +22,7 @@ import (
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/label"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/location"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/maintenanceentry"
+	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/maintenanceentryattachment"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/notifier"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/predicate"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/user"
@@ -36,18 +37,19 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeAttachment           = "Attachment"
-	TypeAuthRoles            = "AuthRoles"
-	TypeAuthTokens           = "AuthTokens"
-	TypeGroup                = "Group"
-	TypeGroupInvitationToken = "GroupInvitationToken"
-	TypeItem                 = "Item"
-	TypeItemField            = "ItemField"
-	TypeLabel                = "Label"
-	TypeLocation             = "Location"
-	TypeMaintenanceEntry     = "MaintenanceEntry"
-	TypeNotifier             = "Notifier"
-	TypeUser                 = "User"
+	TypeAttachment                 = "Attachment"
+	TypeAuthRoles                  = "AuthRoles"
+	TypeAuthTokens                 = "AuthTokens"
+	TypeGroup                      = "Group"
+	TypeGroupInvitationToken       = "GroupInvitationToken"
+	TypeItem                       = "Item"
+	TypeItemField                  = "ItemField"
+	TypeLabel                      = "Label"
+	TypeLocation                   = "Location"
+	TypeMaintenanceEntry           = "MaintenanceEntry"
+	TypeMaintenanceEntryAttachment = "MaintenanceEntryAttachment"
+	TypeNotifier                   = "Notifier"
+	TypeUser                       = "User"
 )
 
 // AttachmentMutation represents an operation that mutates the Attachment nodes in the graph.
@@ -8428,23 +8430,27 @@ func (m *LocationMutation) ResetEdge(name string) error {
 // MaintenanceEntryMutation represents an operation that mutates the MaintenanceEntry nodes in the graph.
 type MaintenanceEntryMutation struct {
 	config
-	op             Op
-	typ            string
-	id             *uuid.UUID
-	created_at     *time.Time
-	updated_at     *time.Time
-	date           *time.Time
-	scheduled_date *time.Time
-	name           *string
-	description    *string
-	cost           *float64
-	addcost        *float64
-	clearedFields  map[string]struct{}
-	item           *uuid.UUID
-	cleareditem    bool
-	done           bool
-	oldValue       func(context.Context) (*MaintenanceEntry, error)
-	predicates     []predicate.MaintenanceEntry
+	op                 Op
+	typ                string
+	id                 *uuid.UUID
+	created_at         *time.Time
+	updated_at         *time.Time
+	date               *time.Time
+	scheduled_date     *time.Time
+	name               *string
+	description        *string
+	cost               *float64
+	addcost            *float64
+	measurement        *string
+	clearedFields      map[string]struct{}
+	item               *uuid.UUID
+	cleareditem        bool
+	attachments        map[int]struct{}
+	removedattachments map[int]struct{}
+	clearedattachments bool
+	done               bool
+	oldValue           func(context.Context) (*MaintenanceEntry, error)
+	predicates         []predicate.MaintenanceEntry
 }
 
 var _ ent.Mutation = (*MaintenanceEntryMutation)(nil)
@@ -8898,6 +8904,55 @@ func (m *MaintenanceEntryMutation) ResetCost() {
 	m.addcost = nil
 }
 
+// SetMeasurement sets the "measurement" field.
+func (m *MaintenanceEntryMutation) SetMeasurement(s string) {
+	m.measurement = &s
+}
+
+// Measurement returns the value of the "measurement" field in the mutation.
+func (m *MaintenanceEntryMutation) Measurement() (r string, exists bool) {
+	v := m.measurement
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMeasurement returns the old "measurement" field's value of the MaintenanceEntry entity.
+// If the MaintenanceEntry object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MaintenanceEntryMutation) OldMeasurement(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMeasurement is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMeasurement requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMeasurement: %w", err)
+	}
+	return oldValue.Measurement, nil
+}
+
+// ClearMeasurement clears the value of the "measurement" field.
+func (m *MaintenanceEntryMutation) ClearMeasurement() {
+	m.measurement = nil
+	m.clearedFields[maintenanceentry.FieldMeasurement] = struct{}{}
+}
+
+// MeasurementCleared returns if the "measurement" field was cleared in this mutation.
+func (m *MaintenanceEntryMutation) MeasurementCleared() bool {
+	_, ok := m.clearedFields[maintenanceentry.FieldMeasurement]
+	return ok
+}
+
+// ResetMeasurement resets all changes to the "measurement" field.
+func (m *MaintenanceEntryMutation) ResetMeasurement() {
+	m.measurement = nil
+	delete(m.clearedFields, maintenanceentry.FieldMeasurement)
+}
+
 // ClearItem clears the "item" edge to the Item entity.
 func (m *MaintenanceEntryMutation) ClearItem() {
 	m.cleareditem = true
@@ -8923,6 +8978,60 @@ func (m *MaintenanceEntryMutation) ItemIDs() (ids []uuid.UUID) {
 func (m *MaintenanceEntryMutation) ResetItem() {
 	m.item = nil
 	m.cleareditem = false
+}
+
+// AddAttachmentIDs adds the "attachments" edge to the MaintenanceEntryAttachment entity by ids.
+func (m *MaintenanceEntryMutation) AddAttachmentIDs(ids ...int) {
+	if m.attachments == nil {
+		m.attachments = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.attachments[ids[i]] = struct{}{}
+	}
+}
+
+// ClearAttachments clears the "attachments" edge to the MaintenanceEntryAttachment entity.
+func (m *MaintenanceEntryMutation) ClearAttachments() {
+	m.clearedattachments = true
+}
+
+// AttachmentsCleared reports if the "attachments" edge to the MaintenanceEntryAttachment entity was cleared.
+func (m *MaintenanceEntryMutation) AttachmentsCleared() bool {
+	return m.clearedattachments
+}
+
+// RemoveAttachmentIDs removes the "attachments" edge to the MaintenanceEntryAttachment entity by IDs.
+func (m *MaintenanceEntryMutation) RemoveAttachmentIDs(ids ...int) {
+	if m.removedattachments == nil {
+		m.removedattachments = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.attachments, ids[i])
+		m.removedattachments[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedAttachments returns the removed IDs of the "attachments" edge to the MaintenanceEntryAttachment entity.
+func (m *MaintenanceEntryMutation) RemovedAttachmentsIDs() (ids []int) {
+	for id := range m.removedattachments {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// AttachmentsIDs returns the "attachments" edge IDs in the mutation.
+func (m *MaintenanceEntryMutation) AttachmentsIDs() (ids []int) {
+	for id := range m.attachments {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetAttachments resets all changes to the "attachments" edge.
+func (m *MaintenanceEntryMutation) ResetAttachments() {
+	m.attachments = nil
+	m.clearedattachments = false
+	m.removedattachments = nil
 }
 
 // Where appends a list predicates to the MaintenanceEntryMutation builder.
@@ -8959,7 +9068,7 @@ func (m *MaintenanceEntryMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *MaintenanceEntryMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 9)
 	if m.created_at != nil {
 		fields = append(fields, maintenanceentry.FieldCreatedAt)
 	}
@@ -8983,6 +9092,9 @@ func (m *MaintenanceEntryMutation) Fields() []string {
 	}
 	if m.cost != nil {
 		fields = append(fields, maintenanceentry.FieldCost)
+	}
+	if m.measurement != nil {
+		fields = append(fields, maintenanceentry.FieldMeasurement)
 	}
 	return fields
 }
@@ -9008,6 +9120,8 @@ func (m *MaintenanceEntryMutation) Field(name string) (ent.Value, bool) {
 		return m.Description()
 	case maintenanceentry.FieldCost:
 		return m.Cost()
+	case maintenanceentry.FieldMeasurement:
+		return m.Measurement()
 	}
 	return nil, false
 }
@@ -9033,6 +9147,8 @@ func (m *MaintenanceEntryMutation) OldField(ctx context.Context, name string) (e
 		return m.OldDescription(ctx)
 	case maintenanceentry.FieldCost:
 		return m.OldCost(ctx)
+	case maintenanceentry.FieldMeasurement:
+		return m.OldMeasurement(ctx)
 	}
 	return nil, fmt.Errorf("unknown MaintenanceEntry field %s", name)
 }
@@ -9098,6 +9214,13 @@ func (m *MaintenanceEntryMutation) SetField(name string, value ent.Value) error 
 		}
 		m.SetCost(v)
 		return nil
+	case maintenanceentry.FieldMeasurement:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMeasurement(v)
+		return nil
 	}
 	return fmt.Errorf("unknown MaintenanceEntry field %s", name)
 }
@@ -9152,6 +9275,9 @@ func (m *MaintenanceEntryMutation) ClearedFields() []string {
 	if m.FieldCleared(maintenanceentry.FieldDescription) {
 		fields = append(fields, maintenanceentry.FieldDescription)
 	}
+	if m.FieldCleared(maintenanceentry.FieldMeasurement) {
+		fields = append(fields, maintenanceentry.FieldMeasurement)
+	}
 	return fields
 }
 
@@ -9174,6 +9300,9 @@ func (m *MaintenanceEntryMutation) ClearField(name string) error {
 		return nil
 	case maintenanceentry.FieldDescription:
 		m.ClearDescription()
+		return nil
+	case maintenanceentry.FieldMeasurement:
+		m.ClearMeasurement()
 		return nil
 	}
 	return fmt.Errorf("unknown MaintenanceEntry nullable field %s", name)
@@ -9207,15 +9336,21 @@ func (m *MaintenanceEntryMutation) ResetField(name string) error {
 	case maintenanceentry.FieldCost:
 		m.ResetCost()
 		return nil
+	case maintenanceentry.FieldMeasurement:
+		m.ResetMeasurement()
+		return nil
 	}
 	return fmt.Errorf("unknown MaintenanceEntry field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *MaintenanceEntryMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.item != nil {
 		edges = append(edges, maintenanceentry.EdgeItem)
+	}
+	if m.attachments != nil {
+		edges = append(edges, maintenanceentry.EdgeAttachments)
 	}
 	return edges
 }
@@ -9228,27 +9363,47 @@ func (m *MaintenanceEntryMutation) AddedIDs(name string) []ent.Value {
 		if id := m.item; id != nil {
 			return []ent.Value{*id}
 		}
+	case maintenanceentry.EdgeAttachments:
+		ids := make([]ent.Value, 0, len(m.attachments))
+		for id := range m.attachments {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *MaintenanceEntryMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
+	if m.removedattachments != nil {
+		edges = append(edges, maintenanceentry.EdgeAttachments)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *MaintenanceEntryMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case maintenanceentry.EdgeAttachments:
+		ids := make([]ent.Value, 0, len(m.removedattachments))
+		for id := range m.removedattachments {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *MaintenanceEntryMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.cleareditem {
 		edges = append(edges, maintenanceentry.EdgeItem)
+	}
+	if m.clearedattachments {
+		edges = append(edges, maintenanceentry.EdgeAttachments)
 	}
 	return edges
 }
@@ -9259,6 +9414,8 @@ func (m *MaintenanceEntryMutation) EdgeCleared(name string) bool {
 	switch name {
 	case maintenanceentry.EdgeItem:
 		return m.cleareditem
+	case maintenanceentry.EdgeAttachments:
+		return m.clearedattachments
 	}
 	return false
 }
@@ -9281,8 +9438,512 @@ func (m *MaintenanceEntryMutation) ResetEdge(name string) error {
 	case maintenanceentry.EdgeItem:
 		m.ResetItem()
 		return nil
+	case maintenanceentry.EdgeAttachments:
+		m.ResetAttachments()
+		return nil
 	}
 	return fmt.Errorf("unknown MaintenanceEntry edge %s", name)
+}
+
+// MaintenanceEntryAttachmentMutation represents an operation that mutates the MaintenanceEntryAttachment nodes in the graph.
+type MaintenanceEntryAttachmentMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int
+	filename      *string
+	filepath      *string
+	uploaded_at   *time.Time
+	clearedFields map[string]struct{}
+	entry         *uuid.UUID
+	clearedentry  bool
+	done          bool
+	oldValue      func(context.Context) (*MaintenanceEntryAttachment, error)
+	predicates    []predicate.MaintenanceEntryAttachment
+}
+
+var _ ent.Mutation = (*MaintenanceEntryAttachmentMutation)(nil)
+
+// maintenanceentryattachmentOption allows management of the mutation configuration using functional options.
+type maintenanceentryattachmentOption func(*MaintenanceEntryAttachmentMutation)
+
+// newMaintenanceEntryAttachmentMutation creates new mutation for the MaintenanceEntryAttachment entity.
+func newMaintenanceEntryAttachmentMutation(c config, op Op, opts ...maintenanceentryattachmentOption) *MaintenanceEntryAttachmentMutation {
+	m := &MaintenanceEntryAttachmentMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeMaintenanceEntryAttachment,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withMaintenanceEntryAttachmentID sets the ID field of the mutation.
+func withMaintenanceEntryAttachmentID(id int) maintenanceentryattachmentOption {
+	return func(m *MaintenanceEntryAttachmentMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *MaintenanceEntryAttachment
+		)
+		m.oldValue = func(ctx context.Context) (*MaintenanceEntryAttachment, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().MaintenanceEntryAttachment.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withMaintenanceEntryAttachment sets the old MaintenanceEntryAttachment of the mutation.
+func withMaintenanceEntryAttachment(node *MaintenanceEntryAttachment) maintenanceentryattachmentOption {
+	return func(m *MaintenanceEntryAttachmentMutation) {
+		m.oldValue = func(context.Context) (*MaintenanceEntryAttachment, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m MaintenanceEntryAttachmentMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m MaintenanceEntryAttachmentMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *MaintenanceEntryAttachmentMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *MaintenanceEntryAttachmentMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().MaintenanceEntryAttachment.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetFilename sets the "filename" field.
+func (m *MaintenanceEntryAttachmentMutation) SetFilename(s string) {
+	m.filename = &s
+}
+
+// Filename returns the value of the "filename" field in the mutation.
+func (m *MaintenanceEntryAttachmentMutation) Filename() (r string, exists bool) {
+	v := m.filename
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFilename returns the old "filename" field's value of the MaintenanceEntryAttachment entity.
+// If the MaintenanceEntryAttachment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MaintenanceEntryAttachmentMutation) OldFilename(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFilename is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFilename requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFilename: %w", err)
+	}
+	return oldValue.Filename, nil
+}
+
+// ResetFilename resets all changes to the "filename" field.
+func (m *MaintenanceEntryAttachmentMutation) ResetFilename() {
+	m.filename = nil
+}
+
+// SetFilepath sets the "filepath" field.
+func (m *MaintenanceEntryAttachmentMutation) SetFilepath(s string) {
+	m.filepath = &s
+}
+
+// Filepath returns the value of the "filepath" field in the mutation.
+func (m *MaintenanceEntryAttachmentMutation) Filepath() (r string, exists bool) {
+	v := m.filepath
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFilepath returns the old "filepath" field's value of the MaintenanceEntryAttachment entity.
+// If the MaintenanceEntryAttachment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MaintenanceEntryAttachmentMutation) OldFilepath(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFilepath is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFilepath requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFilepath: %w", err)
+	}
+	return oldValue.Filepath, nil
+}
+
+// ResetFilepath resets all changes to the "filepath" field.
+func (m *MaintenanceEntryAttachmentMutation) ResetFilepath() {
+	m.filepath = nil
+}
+
+// SetUploadedAt sets the "uploaded_at" field.
+func (m *MaintenanceEntryAttachmentMutation) SetUploadedAt(t time.Time) {
+	m.uploaded_at = &t
+}
+
+// UploadedAt returns the value of the "uploaded_at" field in the mutation.
+func (m *MaintenanceEntryAttachmentMutation) UploadedAt() (r time.Time, exists bool) {
+	v := m.uploaded_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUploadedAt returns the old "uploaded_at" field's value of the MaintenanceEntryAttachment entity.
+// If the MaintenanceEntryAttachment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MaintenanceEntryAttachmentMutation) OldUploadedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUploadedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUploadedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUploadedAt: %w", err)
+	}
+	return oldValue.UploadedAt, nil
+}
+
+// ResetUploadedAt resets all changes to the "uploaded_at" field.
+func (m *MaintenanceEntryAttachmentMutation) ResetUploadedAt() {
+	m.uploaded_at = nil
+}
+
+// SetEntryID sets the "entry" edge to the MaintenanceEntry entity by id.
+func (m *MaintenanceEntryAttachmentMutation) SetEntryID(id uuid.UUID) {
+	m.entry = &id
+}
+
+// ClearEntry clears the "entry" edge to the MaintenanceEntry entity.
+func (m *MaintenanceEntryAttachmentMutation) ClearEntry() {
+	m.clearedentry = true
+}
+
+// EntryCleared reports if the "entry" edge to the MaintenanceEntry entity was cleared.
+func (m *MaintenanceEntryAttachmentMutation) EntryCleared() bool {
+	return m.clearedentry
+}
+
+// EntryID returns the "entry" edge ID in the mutation.
+func (m *MaintenanceEntryAttachmentMutation) EntryID() (id uuid.UUID, exists bool) {
+	if m.entry != nil {
+		return *m.entry, true
+	}
+	return
+}
+
+// EntryIDs returns the "entry" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// EntryID instead. It exists only for internal usage by the builders.
+func (m *MaintenanceEntryAttachmentMutation) EntryIDs() (ids []uuid.UUID) {
+	if id := m.entry; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetEntry resets all changes to the "entry" edge.
+func (m *MaintenanceEntryAttachmentMutation) ResetEntry() {
+	m.entry = nil
+	m.clearedentry = false
+}
+
+// Where appends a list predicates to the MaintenanceEntryAttachmentMutation builder.
+func (m *MaintenanceEntryAttachmentMutation) Where(ps ...predicate.MaintenanceEntryAttachment) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the MaintenanceEntryAttachmentMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *MaintenanceEntryAttachmentMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.MaintenanceEntryAttachment, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *MaintenanceEntryAttachmentMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *MaintenanceEntryAttachmentMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (MaintenanceEntryAttachment).
+func (m *MaintenanceEntryAttachmentMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *MaintenanceEntryAttachmentMutation) Fields() []string {
+	fields := make([]string, 0, 3)
+	if m.filename != nil {
+		fields = append(fields, maintenanceentryattachment.FieldFilename)
+	}
+	if m.filepath != nil {
+		fields = append(fields, maintenanceentryattachment.FieldFilepath)
+	}
+	if m.uploaded_at != nil {
+		fields = append(fields, maintenanceentryattachment.FieldUploadedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *MaintenanceEntryAttachmentMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case maintenanceentryattachment.FieldFilename:
+		return m.Filename()
+	case maintenanceentryattachment.FieldFilepath:
+		return m.Filepath()
+	case maintenanceentryattachment.FieldUploadedAt:
+		return m.UploadedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *MaintenanceEntryAttachmentMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case maintenanceentryattachment.FieldFilename:
+		return m.OldFilename(ctx)
+	case maintenanceentryattachment.FieldFilepath:
+		return m.OldFilepath(ctx)
+	case maintenanceentryattachment.FieldUploadedAt:
+		return m.OldUploadedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown MaintenanceEntryAttachment field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *MaintenanceEntryAttachmentMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case maintenanceentryattachment.FieldFilename:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFilename(v)
+		return nil
+	case maintenanceentryattachment.FieldFilepath:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFilepath(v)
+		return nil
+	case maintenanceentryattachment.FieldUploadedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUploadedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown MaintenanceEntryAttachment field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *MaintenanceEntryAttachmentMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *MaintenanceEntryAttachmentMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *MaintenanceEntryAttachmentMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown MaintenanceEntryAttachment numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *MaintenanceEntryAttachmentMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *MaintenanceEntryAttachmentMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *MaintenanceEntryAttachmentMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown MaintenanceEntryAttachment nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *MaintenanceEntryAttachmentMutation) ResetField(name string) error {
+	switch name {
+	case maintenanceentryattachment.FieldFilename:
+		m.ResetFilename()
+		return nil
+	case maintenanceentryattachment.FieldFilepath:
+		m.ResetFilepath()
+		return nil
+	case maintenanceentryattachment.FieldUploadedAt:
+		m.ResetUploadedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown MaintenanceEntryAttachment field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *MaintenanceEntryAttachmentMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.entry != nil {
+		edges = append(edges, maintenanceentryattachment.EdgeEntry)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *MaintenanceEntryAttachmentMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case maintenanceentryattachment.EdgeEntry:
+		if id := m.entry; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *MaintenanceEntryAttachmentMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *MaintenanceEntryAttachmentMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *MaintenanceEntryAttachmentMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedentry {
+		edges = append(edges, maintenanceentryattachment.EdgeEntry)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *MaintenanceEntryAttachmentMutation) EdgeCleared(name string) bool {
+	switch name {
+	case maintenanceentryattachment.EdgeEntry:
+		return m.clearedentry
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *MaintenanceEntryAttachmentMutation) ClearEdge(name string) error {
+	switch name {
+	case maintenanceentryattachment.EdgeEntry:
+		m.ClearEntry()
+		return nil
+	}
+	return fmt.Errorf("unknown MaintenanceEntryAttachment unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *MaintenanceEntryAttachmentMutation) ResetEdge(name string) error {
+	switch name {
+	case maintenanceentryattachment.EdgeEntry:
+		m.ResetEntry()
+		return nil
+	}
+	return fmt.Errorf("unknown MaintenanceEntryAttachment edge %s", name)
 }
 
 // NotifierMutation represents an operation that mutates the Notifier nodes in the graph.

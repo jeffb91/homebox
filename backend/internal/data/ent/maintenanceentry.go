@@ -35,6 +35,8 @@ type MaintenanceEntry struct {
 	Description string `json:"description,omitempty"`
 	// Cost holds the value of the "cost" field.
 	Cost float64 `json:"cost,omitempty"`
+	// Measurement holds the value of the "measurement" field.
+	Measurement string `json:"measurement,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the MaintenanceEntryQuery when eager-loading is set.
 	Edges        MaintenanceEntryEdges `json:"edges"`
@@ -45,9 +47,11 @@ type MaintenanceEntry struct {
 type MaintenanceEntryEdges struct {
 	// Item holds the value of the item edge.
 	Item *Item `json:"item,omitempty"`
+	// Attachments holds the value of the attachments edge.
+	Attachments []*MaintenanceEntryAttachment `json:"attachments,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // ItemOrErr returns the Item value or an error if the edge
@@ -61,6 +65,15 @@ func (e MaintenanceEntryEdges) ItemOrErr() (*Item, error) {
 	return nil, &NotLoadedError{edge: "item"}
 }
 
+// AttachmentsOrErr returns the Attachments value or an error if the edge
+// was not loaded in eager-loading.
+func (e MaintenanceEntryEdges) AttachmentsOrErr() ([]*MaintenanceEntryAttachment, error) {
+	if e.loadedTypes[1] {
+		return e.Attachments, nil
+	}
+	return nil, &NotLoadedError{edge: "attachments"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*MaintenanceEntry) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -68,7 +81,7 @@ func (*MaintenanceEntry) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case maintenanceentry.FieldCost:
 			values[i] = new(sql.NullFloat64)
-		case maintenanceentry.FieldName, maintenanceentry.FieldDescription:
+		case maintenanceentry.FieldName, maintenanceentry.FieldDescription, maintenanceentry.FieldMeasurement:
 			values[i] = new(sql.NullString)
 		case maintenanceentry.FieldCreatedAt, maintenanceentry.FieldUpdatedAt, maintenanceentry.FieldDate, maintenanceentry.FieldScheduledDate:
 			values[i] = new(sql.NullTime)
@@ -143,6 +156,12 @@ func (me *MaintenanceEntry) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				me.Cost = value.Float64
 			}
+		case maintenanceentry.FieldMeasurement:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field measurement", values[i])
+			} else if value.Valid {
+				me.Measurement = value.String
+			}
 		default:
 			me.selectValues.Set(columns[i], values[i])
 		}
@@ -159,6 +178,11 @@ func (me *MaintenanceEntry) Value(name string) (ent.Value, error) {
 // QueryItem queries the "item" edge of the MaintenanceEntry entity.
 func (me *MaintenanceEntry) QueryItem() *ItemQuery {
 	return NewMaintenanceEntryClient(me.config).QueryItem(me)
+}
+
+// QueryAttachments queries the "attachments" edge of the MaintenanceEntry entity.
+func (me *MaintenanceEntry) QueryAttachments() *MaintenanceEntryAttachmentQuery {
+	return NewMaintenanceEntryClient(me.config).QueryAttachments(me)
 }
 
 // Update returns a builder for updating this MaintenanceEntry.
@@ -207,6 +231,9 @@ func (me *MaintenanceEntry) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("cost=")
 	builder.WriteString(fmt.Sprintf("%v", me.Cost))
+	builder.WriteString(", ")
+	builder.WriteString("measurement=")
+	builder.WriteString(me.Measurement)
 	builder.WriteByte(')')
 	return builder.String()
 }

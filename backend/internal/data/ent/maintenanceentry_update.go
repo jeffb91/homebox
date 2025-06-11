@@ -14,6 +14,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/item"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/maintenanceentry"
+	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/maintenanceentryattachment"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/predicate"
 )
 
@@ -145,9 +146,44 @@ func (meu *MaintenanceEntryUpdate) AddCost(f float64) *MaintenanceEntryUpdate {
 	return meu
 }
 
+// SetMeasurement sets the "measurement" field.
+func (meu *MaintenanceEntryUpdate) SetMeasurement(s string) *MaintenanceEntryUpdate {
+	meu.mutation.SetMeasurement(s)
+	return meu
+}
+
+// SetNillableMeasurement sets the "measurement" field if the given value is not nil.
+func (meu *MaintenanceEntryUpdate) SetNillableMeasurement(s *string) *MaintenanceEntryUpdate {
+	if s != nil {
+		meu.SetMeasurement(*s)
+	}
+	return meu
+}
+
+// ClearMeasurement clears the value of the "measurement" field.
+func (meu *MaintenanceEntryUpdate) ClearMeasurement() *MaintenanceEntryUpdate {
+	meu.mutation.ClearMeasurement()
+	return meu
+}
+
 // SetItem sets the "item" edge to the Item entity.
 func (meu *MaintenanceEntryUpdate) SetItem(i *Item) *MaintenanceEntryUpdate {
 	return meu.SetItemID(i.ID)
+}
+
+// AddAttachmentIDs adds the "attachments" edge to the MaintenanceEntryAttachment entity by IDs.
+func (meu *MaintenanceEntryUpdate) AddAttachmentIDs(ids ...int) *MaintenanceEntryUpdate {
+	meu.mutation.AddAttachmentIDs(ids...)
+	return meu
+}
+
+// AddAttachments adds the "attachments" edges to the MaintenanceEntryAttachment entity.
+func (meu *MaintenanceEntryUpdate) AddAttachments(m ...*MaintenanceEntryAttachment) *MaintenanceEntryUpdate {
+	ids := make([]int, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return meu.AddAttachmentIDs(ids...)
 }
 
 // Mutation returns the MaintenanceEntryMutation object of the builder.
@@ -159,6 +195,27 @@ func (meu *MaintenanceEntryUpdate) Mutation() *MaintenanceEntryMutation {
 func (meu *MaintenanceEntryUpdate) ClearItem() *MaintenanceEntryUpdate {
 	meu.mutation.ClearItem()
 	return meu
+}
+
+// ClearAttachments clears all "attachments" edges to the MaintenanceEntryAttachment entity.
+func (meu *MaintenanceEntryUpdate) ClearAttachments() *MaintenanceEntryUpdate {
+	meu.mutation.ClearAttachments()
+	return meu
+}
+
+// RemoveAttachmentIDs removes the "attachments" edge to MaintenanceEntryAttachment entities by IDs.
+func (meu *MaintenanceEntryUpdate) RemoveAttachmentIDs(ids ...int) *MaintenanceEntryUpdate {
+	meu.mutation.RemoveAttachmentIDs(ids...)
+	return meu
+}
+
+// RemoveAttachments removes "attachments" edges to MaintenanceEntryAttachment entities.
+func (meu *MaintenanceEntryUpdate) RemoveAttachments(m ...*MaintenanceEntryAttachment) *MaintenanceEntryUpdate {
+	ids := make([]int, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return meu.RemoveAttachmentIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -257,6 +314,12 @@ func (meu *MaintenanceEntryUpdate) sqlSave(ctx context.Context) (n int, err erro
 	if value, ok := meu.mutation.AddedCost(); ok {
 		_spec.AddField(maintenanceentry.FieldCost, field.TypeFloat64, value)
 	}
+	if value, ok := meu.mutation.Measurement(); ok {
+		_spec.SetField(maintenanceentry.FieldMeasurement, field.TypeString, value)
+	}
+	if meu.mutation.MeasurementCleared() {
+		_spec.ClearField(maintenanceentry.FieldMeasurement, field.TypeString)
+	}
 	if meu.mutation.ItemCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -279,6 +342,51 @@ func (meu *MaintenanceEntryUpdate) sqlSave(ctx context.Context) (n int, err erro
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(item.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if meu.mutation.AttachmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   maintenanceentry.AttachmentsTable,
+			Columns: []string{maintenanceentry.AttachmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(maintenanceentryattachment.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := meu.mutation.RemovedAttachmentsIDs(); len(nodes) > 0 && !meu.mutation.AttachmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   maintenanceentry.AttachmentsTable,
+			Columns: []string{maintenanceentry.AttachmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(maintenanceentryattachment.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := meu.mutation.AttachmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   maintenanceentry.AttachmentsTable,
+			Columns: []string{maintenanceentry.AttachmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(maintenanceentryattachment.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -421,9 +529,44 @@ func (meuo *MaintenanceEntryUpdateOne) AddCost(f float64) *MaintenanceEntryUpdat
 	return meuo
 }
 
+// SetMeasurement sets the "measurement" field.
+func (meuo *MaintenanceEntryUpdateOne) SetMeasurement(s string) *MaintenanceEntryUpdateOne {
+	meuo.mutation.SetMeasurement(s)
+	return meuo
+}
+
+// SetNillableMeasurement sets the "measurement" field if the given value is not nil.
+func (meuo *MaintenanceEntryUpdateOne) SetNillableMeasurement(s *string) *MaintenanceEntryUpdateOne {
+	if s != nil {
+		meuo.SetMeasurement(*s)
+	}
+	return meuo
+}
+
+// ClearMeasurement clears the value of the "measurement" field.
+func (meuo *MaintenanceEntryUpdateOne) ClearMeasurement() *MaintenanceEntryUpdateOne {
+	meuo.mutation.ClearMeasurement()
+	return meuo
+}
+
 // SetItem sets the "item" edge to the Item entity.
 func (meuo *MaintenanceEntryUpdateOne) SetItem(i *Item) *MaintenanceEntryUpdateOne {
 	return meuo.SetItemID(i.ID)
+}
+
+// AddAttachmentIDs adds the "attachments" edge to the MaintenanceEntryAttachment entity by IDs.
+func (meuo *MaintenanceEntryUpdateOne) AddAttachmentIDs(ids ...int) *MaintenanceEntryUpdateOne {
+	meuo.mutation.AddAttachmentIDs(ids...)
+	return meuo
+}
+
+// AddAttachments adds the "attachments" edges to the MaintenanceEntryAttachment entity.
+func (meuo *MaintenanceEntryUpdateOne) AddAttachments(m ...*MaintenanceEntryAttachment) *MaintenanceEntryUpdateOne {
+	ids := make([]int, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return meuo.AddAttachmentIDs(ids...)
 }
 
 // Mutation returns the MaintenanceEntryMutation object of the builder.
@@ -435,6 +578,27 @@ func (meuo *MaintenanceEntryUpdateOne) Mutation() *MaintenanceEntryMutation {
 func (meuo *MaintenanceEntryUpdateOne) ClearItem() *MaintenanceEntryUpdateOne {
 	meuo.mutation.ClearItem()
 	return meuo
+}
+
+// ClearAttachments clears all "attachments" edges to the MaintenanceEntryAttachment entity.
+func (meuo *MaintenanceEntryUpdateOne) ClearAttachments() *MaintenanceEntryUpdateOne {
+	meuo.mutation.ClearAttachments()
+	return meuo
+}
+
+// RemoveAttachmentIDs removes the "attachments" edge to MaintenanceEntryAttachment entities by IDs.
+func (meuo *MaintenanceEntryUpdateOne) RemoveAttachmentIDs(ids ...int) *MaintenanceEntryUpdateOne {
+	meuo.mutation.RemoveAttachmentIDs(ids...)
+	return meuo
+}
+
+// RemoveAttachments removes "attachments" edges to MaintenanceEntryAttachment entities.
+func (meuo *MaintenanceEntryUpdateOne) RemoveAttachments(m ...*MaintenanceEntryAttachment) *MaintenanceEntryUpdateOne {
+	ids := make([]int, len(m))
+	for i := range m {
+		ids[i] = m[i].ID
+	}
+	return meuo.RemoveAttachmentIDs(ids...)
 }
 
 // Where appends a list predicates to the MaintenanceEntryUpdate builder.
@@ -563,6 +727,12 @@ func (meuo *MaintenanceEntryUpdateOne) sqlSave(ctx context.Context) (_node *Main
 	if value, ok := meuo.mutation.AddedCost(); ok {
 		_spec.AddField(maintenanceentry.FieldCost, field.TypeFloat64, value)
 	}
+	if value, ok := meuo.mutation.Measurement(); ok {
+		_spec.SetField(maintenanceentry.FieldMeasurement, field.TypeString, value)
+	}
+	if meuo.mutation.MeasurementCleared() {
+		_spec.ClearField(maintenanceentry.FieldMeasurement, field.TypeString)
+	}
 	if meuo.mutation.ItemCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -585,6 +755,51 @@ func (meuo *MaintenanceEntryUpdateOne) sqlSave(ctx context.Context) (_node *Main
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(item.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if meuo.mutation.AttachmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   maintenanceentry.AttachmentsTable,
+			Columns: []string{maintenanceentry.AttachmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(maintenanceentryattachment.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := meuo.mutation.RemovedAttachmentsIDs(); len(nodes) > 0 && !meuo.mutation.AttachmentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   maintenanceentry.AttachmentsTable,
+			Columns: []string{maintenanceentry.AttachmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(maintenanceentryattachment.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := meuo.mutation.AttachmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   maintenanceentry.AttachmentsTable,
+			Columns: []string{maintenanceentry.AttachmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(maintenanceentryattachment.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

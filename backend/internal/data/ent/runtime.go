@@ -15,6 +15,7 @@ import (
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/label"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/location"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/maintenanceentry"
+	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/maintenanceentryattachment"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/notifier"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/schema"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/user"
@@ -441,6 +442,20 @@ func init() {
 	maintenanceentryDescID := maintenanceentryMixinFields0[0].Descriptor()
 	// maintenanceentry.DefaultID holds the default value on creation for the id field.
 	maintenanceentry.DefaultID = maintenanceentryDescID.Default.(func() uuid.UUID)
+	maintenanceentryattachmentFields := schema.MaintenanceEntryAttachment{}.Fields()
+	_ = maintenanceentryattachmentFields
+	// maintenanceentryattachmentDescFilename is the schema descriptor for filename field.
+	maintenanceentryattachmentDescFilename := maintenanceentryattachmentFields[0].Descriptor()
+	// maintenanceentryattachment.FilenameValidator is a validator for the "filename" field. It is called by the builders before save.
+	maintenanceentryattachment.FilenameValidator = maintenanceentryattachmentDescFilename.Validators[0].(func(string) error)
+	// maintenanceentryattachmentDescFilepath is the schema descriptor for filepath field.
+	maintenanceentryattachmentDescFilepath := maintenanceentryattachmentFields[1].Descriptor()
+	// maintenanceentryattachment.FilepathValidator is a validator for the "filepath" field. It is called by the builders before save.
+	maintenanceentryattachment.FilepathValidator = maintenanceentryattachmentDescFilepath.Validators[0].(func(string) error)
+	// maintenanceentryattachmentDescUploadedAt is the schema descriptor for uploaded_at field.
+	maintenanceentryattachmentDescUploadedAt := maintenanceentryattachmentFields[2].Descriptor()
+	// maintenanceentryattachment.DefaultUploadedAt holds the default value on creation for the uploaded_at field.
+	maintenanceentryattachment.DefaultUploadedAt = maintenanceentryattachmentDescUploadedAt.Default.(func() time.Time)
 	notifierMixin := schema.Notifier{}.Mixin()
 	notifierMixinFields0 := notifierMixin[0].Fields()
 	_ = notifierMixinFields0

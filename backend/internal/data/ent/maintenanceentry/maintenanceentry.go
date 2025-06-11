@@ -31,8 +31,12 @@ const (
 	FieldDescription = "description"
 	// FieldCost holds the string denoting the cost field in the database.
 	FieldCost = "cost"
+	// FieldMeasurement holds the string denoting the measurement field in the database.
+	FieldMeasurement = "measurement"
 	// EdgeItem holds the string denoting the item edge name in mutations.
 	EdgeItem = "item"
+	// EdgeAttachments holds the string denoting the attachments edge name in mutations.
+	EdgeAttachments = "attachments"
 	// Table holds the table name of the maintenanceentry in the database.
 	Table = "maintenance_entries"
 	// ItemTable is the table that holds the item relation/edge.
@@ -42,6 +46,13 @@ const (
 	ItemInverseTable = "items"
 	// ItemColumn is the table column denoting the item relation/edge.
 	ItemColumn = "item_id"
+	// AttachmentsTable is the table that holds the attachments relation/edge.
+	AttachmentsTable = "maintenance_entry_attachments"
+	// AttachmentsInverseTable is the table name for the MaintenanceEntryAttachment entity.
+	// It exists in this package in order to avoid circular dependency with the "maintenanceentryattachment" package.
+	AttachmentsInverseTable = "maintenance_entry_attachments"
+	// AttachmentsColumn is the table column denoting the attachments relation/edge.
+	AttachmentsColumn = "maintenance_entry_attachments"
 )
 
 // Columns holds all SQL columns for maintenanceentry fields.
@@ -55,6 +66,7 @@ var Columns = []string{
 	FieldName,
 	FieldDescription,
 	FieldCost,
+	FieldMeasurement,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -132,10 +144,29 @@ func ByCost(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCost, opts...).ToFunc()
 }
 
+// ByMeasurement orders the results by the measurement field.
+func ByMeasurement(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldMeasurement, opts...).ToFunc()
+}
+
 // ByItemField orders the results by item field.
 func ByItemField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newItemStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByAttachmentsCount orders the results by attachments count.
+func ByAttachmentsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newAttachmentsStep(), opts...)
+	}
+}
+
+// ByAttachments orders the results by attachments terms.
+func ByAttachments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newAttachmentsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 func newItemStep() *sqlgraph.Step {
@@ -143,5 +174,12 @@ func newItemStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(ItemInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, ItemTable, ItemColumn),
+	)
+}
+func newAttachmentsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(AttachmentsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, AttachmentsTable, AttachmentsColumn),
 	)
 }

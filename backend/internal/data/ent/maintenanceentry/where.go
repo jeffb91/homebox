@@ -96,6 +96,11 @@ func Cost(v float64) predicate.MaintenanceEntry {
 	return predicate.MaintenanceEntry(sql.FieldEQ(FieldCost, v))
 }
 
+// Measurement applies equality check predicate on the "measurement" field. It's identical to MeasurementEQ.
+func Measurement(v string) predicate.MaintenanceEntry {
+	return predicate.MaintenanceEntry(sql.FieldEQ(FieldMeasurement, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.MaintenanceEntry {
 	return predicate.MaintenanceEntry(sql.FieldEQ(FieldCreatedAt, v))
@@ -476,6 +481,81 @@ func CostLTE(v float64) predicate.MaintenanceEntry {
 	return predicate.MaintenanceEntry(sql.FieldLTE(FieldCost, v))
 }
 
+// MeasurementEQ applies the EQ predicate on the "measurement" field.
+func MeasurementEQ(v string) predicate.MaintenanceEntry {
+	return predicate.MaintenanceEntry(sql.FieldEQ(FieldMeasurement, v))
+}
+
+// MeasurementNEQ applies the NEQ predicate on the "measurement" field.
+func MeasurementNEQ(v string) predicate.MaintenanceEntry {
+	return predicate.MaintenanceEntry(sql.FieldNEQ(FieldMeasurement, v))
+}
+
+// MeasurementIn applies the In predicate on the "measurement" field.
+func MeasurementIn(vs ...string) predicate.MaintenanceEntry {
+	return predicate.MaintenanceEntry(sql.FieldIn(FieldMeasurement, vs...))
+}
+
+// MeasurementNotIn applies the NotIn predicate on the "measurement" field.
+func MeasurementNotIn(vs ...string) predicate.MaintenanceEntry {
+	return predicate.MaintenanceEntry(sql.FieldNotIn(FieldMeasurement, vs...))
+}
+
+// MeasurementGT applies the GT predicate on the "measurement" field.
+func MeasurementGT(v string) predicate.MaintenanceEntry {
+	return predicate.MaintenanceEntry(sql.FieldGT(FieldMeasurement, v))
+}
+
+// MeasurementGTE applies the GTE predicate on the "measurement" field.
+func MeasurementGTE(v string) predicate.MaintenanceEntry {
+	return predicate.MaintenanceEntry(sql.FieldGTE(FieldMeasurement, v))
+}
+
+// MeasurementLT applies the LT predicate on the "measurement" field.
+func MeasurementLT(v string) predicate.MaintenanceEntry {
+	return predicate.MaintenanceEntry(sql.FieldLT(FieldMeasurement, v))
+}
+
+// MeasurementLTE applies the LTE predicate on the "measurement" field.
+func MeasurementLTE(v string) predicate.MaintenanceEntry {
+	return predicate.MaintenanceEntry(sql.FieldLTE(FieldMeasurement, v))
+}
+
+// MeasurementContains applies the Contains predicate on the "measurement" field.
+func MeasurementContains(v string) predicate.MaintenanceEntry {
+	return predicate.MaintenanceEntry(sql.FieldContains(FieldMeasurement, v))
+}
+
+// MeasurementHasPrefix applies the HasPrefix predicate on the "measurement" field.
+func MeasurementHasPrefix(v string) predicate.MaintenanceEntry {
+	return predicate.MaintenanceEntry(sql.FieldHasPrefix(FieldMeasurement, v))
+}
+
+// MeasurementHasSuffix applies the HasSuffix predicate on the "measurement" field.
+func MeasurementHasSuffix(v string) predicate.MaintenanceEntry {
+	return predicate.MaintenanceEntry(sql.FieldHasSuffix(FieldMeasurement, v))
+}
+
+// MeasurementIsNil applies the IsNil predicate on the "measurement" field.
+func MeasurementIsNil() predicate.MaintenanceEntry {
+	return predicate.MaintenanceEntry(sql.FieldIsNull(FieldMeasurement))
+}
+
+// MeasurementNotNil applies the NotNil predicate on the "measurement" field.
+func MeasurementNotNil() predicate.MaintenanceEntry {
+	return predicate.MaintenanceEntry(sql.FieldNotNull(FieldMeasurement))
+}
+
+// MeasurementEqualFold applies the EqualFold predicate on the "measurement" field.
+func MeasurementEqualFold(v string) predicate.MaintenanceEntry {
+	return predicate.MaintenanceEntry(sql.FieldEqualFold(FieldMeasurement, v))
+}
+
+// MeasurementContainsFold applies the ContainsFold predicate on the "measurement" field.
+func MeasurementContainsFold(v string) predicate.MaintenanceEntry {
+	return predicate.MaintenanceEntry(sql.FieldContainsFold(FieldMeasurement, v))
+}
+
 // HasItem applies the HasEdge predicate on the "item" edge.
 func HasItem() predicate.MaintenanceEntry {
 	return predicate.MaintenanceEntry(func(s *sql.Selector) {
@@ -491,6 +571,29 @@ func HasItem() predicate.MaintenanceEntry {
 func HasItemWith(preds ...predicate.Item) predicate.MaintenanceEntry {
 	return predicate.MaintenanceEntry(func(s *sql.Selector) {
 		step := newItemStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasAttachments applies the HasEdge predicate on the "attachments" edge.
+func HasAttachments() predicate.MaintenanceEntry {
+	return predicate.MaintenanceEntry(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, AttachmentsTable, AttachmentsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasAttachmentsWith applies the HasEdge predicate on the "attachments" edge with a given conditions (other predicates).
+func HasAttachmentsWith(preds ...predicate.MaintenanceEntryAttachment) predicate.MaintenanceEntry {
+	return predicate.MaintenanceEntry(func(s *sql.Selector) {
+		step := newAttachmentsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
