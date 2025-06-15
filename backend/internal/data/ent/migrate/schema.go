@@ -321,11 +321,13 @@ var (
 	}
 	// MaintenanceEntryAttachmentsColumns holds the columns for the "maintenance_entry_attachments" table.
 	MaintenanceEntryAttachmentsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "id", Type: field.TypeUUID},
 		{Name: "filename", Type: field.TypeString},
 		{Name: "filepath", Type: field.TypeString},
+		{Name: "content_type", Type: field.TypeString, Nullable: true},
 		{Name: "uploaded_at", Type: field.TypeTime},
-		{Name: "maintenance_entry_attachments", Type: field.TypeUUID},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "maintenance_entry_id", Type: field.TypeUUID},
 	}
 	// MaintenanceEntryAttachmentsTable holds the schema information for the "maintenance_entry_attachments" table.
 	MaintenanceEntryAttachmentsTable = &schema.Table{
@@ -335,7 +337,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "maintenance_entry_attachments_maintenance_entries_attachments",
-				Columns:    []*schema.Column{MaintenanceEntryAttachmentsColumns[4]},
+				Columns:    []*schema.Column{MaintenanceEntryAttachmentsColumns[6]},
 				RefColumns: []*schema.Column{MaintenanceEntriesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},

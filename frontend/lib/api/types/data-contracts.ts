@@ -288,6 +288,7 @@ export interface MaintenanceEntryCreate {
   description: string;
   name: string;
   scheduledDate: Date | string;
+  measurement?: string;
 }
 
 export interface MaintenanceEntryUpdate {

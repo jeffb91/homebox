@@ -11,6 +11,9 @@ export interface MaintenanceFilters {
 }
 
 export class MaintenanceAPI extends BaseAPI {
+  getAttachments(id: string): { data: any; error: any; } | PromiseLike<{ data: any; error: any; }> {
+    throw new Error("Method not implemented.");
+  }
   getAll(filters: MaintenanceFilters) {
     return this.http.get<MaintenanceEntryWithDetails[]>({
       url: route(`/maintenance`, { status: filters.status?.toString() }),

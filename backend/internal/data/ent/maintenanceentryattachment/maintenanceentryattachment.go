@@ -7,6 +7,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/google/uuid"
 )
 
 const (
@@ -18,8 +19,14 @@ const (
 	FieldFilename = "filename"
 	// FieldFilepath holds the string denoting the filepath field in the database.
 	FieldFilepath = "filepath"
+	// FieldContentType holds the string denoting the content_type field in the database.
+	FieldContentType = "content_type"
 	// FieldUploadedAt holds the string denoting the uploaded_at field in the database.
 	FieldUploadedAt = "uploaded_at"
+	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
+	FieldUpdatedAt = "updated_at"
+	// FieldMaintenanceEntryID holds the string denoting the maintenance_entry_id field in the database.
+	FieldMaintenanceEntryID = "maintenance_entry_id"
 	// EdgeEntry holds the string denoting the entry edge name in mutations.
 	EdgeEntry = "entry"
 	// Table holds the table name of the maintenanceentryattachment in the database.
@@ -30,7 +37,7 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "maintenanceentry" package.
 	EntryInverseTable = "maintenance_entries"
 	// EntryColumn is the table column denoting the entry relation/edge.
-	EntryColumn = "maintenance_entry_attachments"
+	EntryColumn = "maintenance_entry_id"
 )
 
 // Columns holds all SQL columns for maintenanceentryattachment fields.
@@ -38,24 +45,16 @@ var Columns = []string{
 	FieldID,
 	FieldFilename,
 	FieldFilepath,
+	FieldContentType,
 	FieldUploadedAt,
-}
-
-// ForeignKeys holds the SQL foreign-keys that are owned by the "maintenance_entry_attachments"
-// table and are not defined as standalone fields in the schema.
-var ForeignKeys = []string{
-	"maintenance_entry_attachments",
+	FieldUpdatedAt,
+	FieldMaintenanceEntryID,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
 	for i := range Columns {
 		if column == Columns[i] {
-			return true
-		}
-	}
-	for i := range ForeignKeys {
-		if column == ForeignKeys[i] {
 			return true
 		}
 	}
@@ -69,6 +68,10 @@ var (
 	FilepathValidator func(string) error
 	// DefaultUploadedAt holds the default value on creation for the "uploaded_at" field.
 	DefaultUploadedAt func() time.Time
+	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
+	DefaultUpdatedAt func() time.Time
+	// DefaultID holds the default value on creation for the "id" field.
+	DefaultID func() uuid.UUID
 )
 
 // OrderOption defines the ordering options for the MaintenanceEntryAttachment queries.
@@ -89,9 +92,24 @@ func ByFilepath(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldFilepath, opts...).ToFunc()
 }
 
+// ByContentType orders the results by the content_type field.
+func ByContentType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldContentType, opts...).ToFunc()
+}
+
 // ByUploadedAt orders the results by the uploaded_at field.
 func ByUploadedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUploadedAt, opts...).ToFunc()
+}
+
+// ByUpdatedAt orders the results by the updated_at field.
+func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
+}
+
+// ByMaintenanceEntryID orders the results by the maintenance_entry_id field.
+func ByMaintenanceEntryID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldMaintenanceEntryID, opts...).ToFunc()
 }
 
 // ByEntryField orders the results by entry field.

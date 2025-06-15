@@ -153,14 +153,14 @@ func (mec *MaintenanceEntryCreate) SetItem(i *Item) *MaintenanceEntryCreate {
 }
 
 // AddAttachmentIDs adds the "attachments" edge to the MaintenanceEntryAttachment entity by IDs.
-func (mec *MaintenanceEntryCreate) AddAttachmentIDs(ids ...int) *MaintenanceEntryCreate {
+func (mec *MaintenanceEntryCreate) AddAttachmentIDs(ids ...uuid.UUID) *MaintenanceEntryCreate {
 	mec.mutation.AddAttachmentIDs(ids...)
 	return mec
 }
 
 // AddAttachments adds the "attachments" edges to the MaintenanceEntryAttachment entity.
 func (mec *MaintenanceEntryCreate) AddAttachments(m ...*MaintenanceEntryAttachment) *MaintenanceEntryCreate {
-	ids := make([]int, len(m))
+	ids := make([]uuid.UUID, len(m))
 	for i := range m {
 		ids[i] = m[i].ID
 	}
@@ -342,7 +342,7 @@ func (mec *MaintenanceEntryCreate) createSpec() (*MaintenanceEntry, *sqlgraph.Cr
 			Columns: []string{maintenanceentry.AttachmentsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(maintenanceentryattachment.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(maintenanceentryattachment.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

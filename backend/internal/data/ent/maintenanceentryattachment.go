@@ -18,18 +18,23 @@ import (
 type MaintenanceEntryAttachment struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID int `json:"id,omitempty"`
+	ID uuid.UUID `json:"id,omitempty"`
 	// Filename holds the value of the "filename" field.
 	Filename string `json:"filename,omitempty"`
 	// Filepath holds the value of the "filepath" field.
 	Filepath string `json:"filepath,omitempty"`
+	// ContentType holds the value of the "content_type" field.
+	ContentType string `json:"content_type,omitempty"`
 	// UploadedAt holds the value of the "uploaded_at" field.
 	UploadedAt time.Time `json:"uploaded_at,omitempty"`
+	// UpdatedAt holds the value of the "updated_at" field.
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// MaintenanceEntryID holds the value of the "maintenance_entry_id" field.
+	MaintenanceEntryID uuid.UUID `json:"maintenance_entry_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the MaintenanceEntryAttachmentQuery when eager-loading is set.
-	Edges                         MaintenanceEntryAttachmentEdges `json:"edges"`
-	maintenance_entry_attachments *uuid.UUID
-	selectValues                  sql.SelectValues
+	Edges        MaintenanceEntryAttachmentEdges `json:"edges"`
+	selectValues sql.SelectValues
 }
 
 // MaintenanceEntryAttachmentEdges holds the relations/edges for other nodes in the graph.
@@ -57,14 +62,12 @@ func (*MaintenanceEntryAttachment) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case maintenanceentryattachment.FieldID:
-			values[i] = new(sql.NullInt64)
-		case maintenanceentryattachment.FieldFilename, maintenanceentryattachment.FieldFilepath:
+		case maintenanceentryattachment.FieldFilename, maintenanceentryattachment.FieldFilepath, maintenanceentryattachment.FieldContentType:
 			values[i] = new(sql.NullString)
-		case maintenanceentryattachment.FieldUploadedAt:
+		case maintenanceentryattachment.FieldUploadedAt, maintenanceentryattachment.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
-		case maintenanceentryattachment.ForeignKeys[0]: // maintenance_entry_attachments
-			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
+		case maintenanceentryattachment.FieldID, maintenanceentryattachment.FieldMaintenanceEntryID:
+			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -81,11 +84,11 @@ func (mea *MaintenanceEntryAttachment) assignValues(columns []string, values []a
 	for i := range columns {
 		switch columns[i] {
 		case maintenanceentryattachment.FieldID:
-			value, ok := values[i].(*sql.NullInt64)
-			if !ok {
-				return fmt.Errorf("unexpected type %T for field id", value)
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field id", values[i])
+			} else if value != nil {
+				mea.ID = *value
 			}
-			mea.ID = int(value.Int64)
 		case maintenanceentryattachment.FieldFilename:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field filename", values[i])
@@ -98,18 +101,29 @@ func (mea *MaintenanceEntryAttachment) assignValues(columns []string, values []a
 			} else if value.Valid {
 				mea.Filepath = value.String
 			}
+		case maintenanceentryattachment.FieldContentType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field content_type", values[i])
+			} else if value.Valid {
+				mea.ContentType = value.String
+			}
 		case maintenanceentryattachment.FieldUploadedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field uploaded_at", values[i])
 			} else if value.Valid {
 				mea.UploadedAt = value.Time
 			}
-		case maintenanceentryattachment.ForeignKeys[0]:
-			if value, ok := values[i].(*sql.NullScanner); !ok {
-				return fmt.Errorf("unexpected type %T for field maintenance_entry_attachments", values[i])
+		case maintenanceentryattachment.FieldUpdatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
-				mea.maintenance_entry_attachments = new(uuid.UUID)
-				*mea.maintenance_entry_attachments = *value.S.(*uuid.UUID)
+				mea.UpdatedAt = value.Time
+			}
+		case maintenanceentryattachment.FieldMaintenanceEntryID:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field maintenance_entry_id", values[i])
+			} else if value != nil {
+				mea.MaintenanceEntryID = *value
 			}
 		default:
 			mea.selectValues.Set(columns[i], values[i])
@@ -158,8 +172,17 @@ func (mea *MaintenanceEntryAttachment) String() string {
 	builder.WriteString("filepath=")
 	builder.WriteString(mea.Filepath)
 	builder.WriteString(", ")
+	builder.WriteString("content_type=")
+	builder.WriteString(mea.ContentType)
+	builder.WriteString(", ")
 	builder.WriteString("uploaded_at=")
 	builder.WriteString(mea.UploadedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("updated_at=")
+	builder.WriteString(mea.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("maintenance_entry_id=")
+	builder.WriteString(fmt.Sprintf("%v", mea.MaintenanceEntryID))
 	builder.WriteByte(')')
 	return builder.String()
 }

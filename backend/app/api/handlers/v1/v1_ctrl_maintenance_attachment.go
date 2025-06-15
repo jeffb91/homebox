@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 
@@ -55,94 +56,69 @@ func (ctrl *V1Controller) HandleMaintenanceAttachmentCreate() errchain.HandlerFu
 			return validate.NewRequestError(err, http.StatusInternalServerError)
 		}
 
-		return server.JSON(w, http.StatusOK, map[string]string{"status": "ok"})
+		return server.JSON(w, http.StatusCreated, map[string]string{"status": "ok"})
 	}
 }
 
-// GET /v1/maintenance/attachments/{attachment_id}
+// GET /v1/maintenance/{id}/attachments/{attachment_id}
 func (ctrl *V1Controller) HandleMaintenanceAttachmentGet() errchain.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) error {
-		attachmentID, err := ctrl.routeUUID(r, "attachment_id")
-		if err != nil {
-			return err
-		}
+	return ctrl.handleMaintenanceAttachmentHandler
+}
 
-		ctx := services.NewContext(r.Context())
+// DELETE /v1/maintenance/{id}/attachments/{attachment_id}
+func (ctrl *V1Controller) HandleMaintenanceAttachmentDelete() errchain.HandlerFunc {
+	return ctrl.handleMaintenanceAttachmentHandler
+}
 
+// PUT /v1/maintenance/{id}/attachments/{attachment_id}
+func (ctrl *V1Controller) HandleMaintenanceAttachmentUpdate() errchain.HandlerFunc {
+	return ctrl.handleMaintenanceAttachmentHandler
+}
+
+// Generic GET / DELETE / PUT handler
+func (ctrl *V1Controller) handleMaintenanceAttachmentHandler(w http.ResponseWriter, r *http.Request) error {
+
+	attachmentID, err := ctrl.routeUUID(r, "attachment_id")
+	if err != nil {
+		return err
+	}
+
+	ctx := services.NewContext(r.Context())
+
+	switch r.Method {
+	case http.MethodGet:
 		attachment, err := ctrl.repo.MaintAttachments.Get(ctx, attachmentID)
 		if err != nil {
+			log.Err(err).Msg("failed to get attachment path")
 			return validate.NewRequestError(err, http.StatusNotFound)
 		}
-
-		http.ServeFile(w, r, attachment.Path)
+		http.ServeFile(w, r, attachment.Filepath)
 		return nil
-	}
-}
 
-// GET /v1/maintenance/{id}/attachments
-func (ctrl *V1Controller) HandleMaintenanceAttachmentList() errchain.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) error {
-		entryID, err := ctrl.routeUUID(r, "id")
-		if err != nil {
-			return err
-		}
-
-		ctx := services.NewContext(r.Context())
-
-		attachments, err := ctrl.repo.MaintAttachments.ListByEntry(ctx, entryID)
-		if err != nil {
-			log.Err(err).Msg("failed to list maintenance attachments")
-			return validate.NewRequestError(err, http.StatusInternalServerError)
-		}
-
-		return server.JSON(w, http.StatusOK, attachments)
-	}
-}
-
-// DELETE /v1/maintenance/attachments/{attachment_id}
-func (ctrl *V1Controller) HandleMaintenanceAttachmentDelete() errchain.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) error {
-		attachmentID, err := ctrl.routeUUID(r, "attachment_id")
-		if err != nil {
-			return err
-		}
-
-		ctx := services.NewContext(r.Context())
-
+	case http.MethodDelete:
 		err = ctrl.repo.MaintAttachments.Delete(ctx, attachmentID)
 		if err != nil {
-			log.Err(err).Msg("failed to delete maintenance attachment")
+			log.Err(err).Msg("failed to delete attachment")
 			return validate.NewRequestError(err, http.StatusInternalServerError)
 		}
+		return server.JSON(w, http.StatusNoContent, nil)
 
-		return server.JSON(w, http.StatusOK, map[string]string{"status": "deleted"})
-	}
-}
-
-// PUT /v1/maintenance/attachments/{attachment_id}
-func (ctrl *V1Controller) HandleMaintenanceAttachmentUpdate() errchain.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) error {
-		attachmentID, err := ctrl.routeUUID(r, "attachment_id")
-		if err != nil {
-			return err
-		}
-
+	case http.MethodPut:
 		var data struct {
 			Title string `json:"title"`
 		}
-
-		if err := server.DecodeJSON(r.Body, &data); err != nil {
+		if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
+			log.Err(err).Msg("failed to decode attachment update")
 			return validate.NewRequestError(err, http.StatusBadRequest)
 		}
 
-		ctx := services.NewContext(r.Context())
-
-		_, err = ctrl.repo.MaintAttachments.Rename(ctx, attachmentID, data.Title)
+		_, err := ctrl.repo.MaintAttachments.Rename(ctx, attachmentID, data.Title)
 		if err != nil {
-			log.Err(err).Msg("failed to update attachment")
+			log.Err(err).Msg("failed to update attachment title")
 			return validate.NewRequestError(err, http.StatusInternalServerError)
 		}
-
 		return server.JSON(w, http.StatusOK, map[string]string{"status": "updated"})
 	}
+
+	return validate.NewRequestError(errors.New("unsupported method"), http.StatusMethodNotAllowed)
 }

@@ -58,6 +58,26 @@ func (meau *MaintenanceEntryAttachmentUpdate) SetNillableFilepath(s *string) *Ma
 	return meau
 }
 
+// SetContentType sets the "content_type" field.
+func (meau *MaintenanceEntryAttachmentUpdate) SetContentType(s string) *MaintenanceEntryAttachmentUpdate {
+	meau.mutation.SetContentType(s)
+	return meau
+}
+
+// SetNillableContentType sets the "content_type" field if the given value is not nil.
+func (meau *MaintenanceEntryAttachmentUpdate) SetNillableContentType(s *string) *MaintenanceEntryAttachmentUpdate {
+	if s != nil {
+		meau.SetContentType(*s)
+	}
+	return meau
+}
+
+// ClearContentType clears the value of the "content_type" field.
+func (meau *MaintenanceEntryAttachmentUpdate) ClearContentType() *MaintenanceEntryAttachmentUpdate {
+	meau.mutation.ClearContentType()
+	return meau
+}
+
 // SetUploadedAt sets the "uploaded_at" field.
 func (meau *MaintenanceEntryAttachmentUpdate) SetUploadedAt(t time.Time) *MaintenanceEntryAttachmentUpdate {
 	meau.mutation.SetUploadedAt(t)
@@ -68,6 +88,34 @@ func (meau *MaintenanceEntryAttachmentUpdate) SetUploadedAt(t time.Time) *Mainte
 func (meau *MaintenanceEntryAttachmentUpdate) SetNillableUploadedAt(t *time.Time) *MaintenanceEntryAttachmentUpdate {
 	if t != nil {
 		meau.SetUploadedAt(*t)
+	}
+	return meau
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (meau *MaintenanceEntryAttachmentUpdate) SetUpdatedAt(t time.Time) *MaintenanceEntryAttachmentUpdate {
+	meau.mutation.SetUpdatedAt(t)
+	return meau
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (meau *MaintenanceEntryAttachmentUpdate) SetNillableUpdatedAt(t *time.Time) *MaintenanceEntryAttachmentUpdate {
+	if t != nil {
+		meau.SetUpdatedAt(*t)
+	}
+	return meau
+}
+
+// SetMaintenanceEntryID sets the "maintenance_entry_id" field.
+func (meau *MaintenanceEntryAttachmentUpdate) SetMaintenanceEntryID(u uuid.UUID) *MaintenanceEntryAttachmentUpdate {
+	meau.mutation.SetMaintenanceEntryID(u)
+	return meau
+}
+
+// SetNillableMaintenanceEntryID sets the "maintenance_entry_id" field if the given value is not nil.
+func (meau *MaintenanceEntryAttachmentUpdate) SetNillableMaintenanceEntryID(u *uuid.UUID) *MaintenanceEntryAttachmentUpdate {
+	if u != nil {
+		meau.SetMaintenanceEntryID(*u)
 	}
 	return meau
 }
@@ -143,7 +191,7 @@ func (meau *MaintenanceEntryAttachmentUpdate) sqlSave(ctx context.Context) (n in
 	if err := meau.check(); err != nil {
 		return n, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(maintenanceentryattachment.Table, maintenanceentryattachment.Columns, sqlgraph.NewFieldSpec(maintenanceentryattachment.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewUpdateSpec(maintenanceentryattachment.Table, maintenanceentryattachment.Columns, sqlgraph.NewFieldSpec(maintenanceentryattachment.FieldID, field.TypeUUID))
 	if ps := meau.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -157,8 +205,17 @@ func (meau *MaintenanceEntryAttachmentUpdate) sqlSave(ctx context.Context) (n in
 	if value, ok := meau.mutation.Filepath(); ok {
 		_spec.SetField(maintenanceentryattachment.FieldFilepath, field.TypeString, value)
 	}
+	if value, ok := meau.mutation.ContentType(); ok {
+		_spec.SetField(maintenanceentryattachment.FieldContentType, field.TypeString, value)
+	}
+	if meau.mutation.ContentTypeCleared() {
+		_spec.ClearField(maintenanceentryattachment.FieldContentType, field.TypeString)
+	}
 	if value, ok := meau.mutation.UploadedAt(); ok {
 		_spec.SetField(maintenanceentryattachment.FieldUploadedAt, field.TypeTime, value)
+	}
+	if value, ok := meau.mutation.UpdatedAt(); ok {
+		_spec.SetField(maintenanceentryattachment.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if meau.mutation.EntryCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -237,6 +294,26 @@ func (meauo *MaintenanceEntryAttachmentUpdateOne) SetNillableFilepath(s *string)
 	return meauo
 }
 
+// SetContentType sets the "content_type" field.
+func (meauo *MaintenanceEntryAttachmentUpdateOne) SetContentType(s string) *MaintenanceEntryAttachmentUpdateOne {
+	meauo.mutation.SetContentType(s)
+	return meauo
+}
+
+// SetNillableContentType sets the "content_type" field if the given value is not nil.
+func (meauo *MaintenanceEntryAttachmentUpdateOne) SetNillableContentType(s *string) *MaintenanceEntryAttachmentUpdateOne {
+	if s != nil {
+		meauo.SetContentType(*s)
+	}
+	return meauo
+}
+
+// ClearContentType clears the value of the "content_type" field.
+func (meauo *MaintenanceEntryAttachmentUpdateOne) ClearContentType() *MaintenanceEntryAttachmentUpdateOne {
+	meauo.mutation.ClearContentType()
+	return meauo
+}
+
 // SetUploadedAt sets the "uploaded_at" field.
 func (meauo *MaintenanceEntryAttachmentUpdateOne) SetUploadedAt(t time.Time) *MaintenanceEntryAttachmentUpdateOne {
 	meauo.mutation.SetUploadedAt(t)
@@ -247,6 +324,34 @@ func (meauo *MaintenanceEntryAttachmentUpdateOne) SetUploadedAt(t time.Time) *Ma
 func (meauo *MaintenanceEntryAttachmentUpdateOne) SetNillableUploadedAt(t *time.Time) *MaintenanceEntryAttachmentUpdateOne {
 	if t != nil {
 		meauo.SetUploadedAt(*t)
+	}
+	return meauo
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (meauo *MaintenanceEntryAttachmentUpdateOne) SetUpdatedAt(t time.Time) *MaintenanceEntryAttachmentUpdateOne {
+	meauo.mutation.SetUpdatedAt(t)
+	return meauo
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (meauo *MaintenanceEntryAttachmentUpdateOne) SetNillableUpdatedAt(t *time.Time) *MaintenanceEntryAttachmentUpdateOne {
+	if t != nil {
+		meauo.SetUpdatedAt(*t)
+	}
+	return meauo
+}
+
+// SetMaintenanceEntryID sets the "maintenance_entry_id" field.
+func (meauo *MaintenanceEntryAttachmentUpdateOne) SetMaintenanceEntryID(u uuid.UUID) *MaintenanceEntryAttachmentUpdateOne {
+	meauo.mutation.SetMaintenanceEntryID(u)
+	return meauo
+}
+
+// SetNillableMaintenanceEntryID sets the "maintenance_entry_id" field if the given value is not nil.
+func (meauo *MaintenanceEntryAttachmentUpdateOne) SetNillableMaintenanceEntryID(u *uuid.UUID) *MaintenanceEntryAttachmentUpdateOne {
+	if u != nil {
+		meauo.SetMaintenanceEntryID(*u)
 	}
 	return meauo
 }
@@ -335,7 +440,7 @@ func (meauo *MaintenanceEntryAttachmentUpdateOne) sqlSave(ctx context.Context) (
 	if err := meauo.check(); err != nil {
 		return _node, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(maintenanceentryattachment.Table, maintenanceentryattachment.Columns, sqlgraph.NewFieldSpec(maintenanceentryattachment.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewUpdateSpec(maintenanceentryattachment.Table, maintenanceentryattachment.Columns, sqlgraph.NewFieldSpec(maintenanceentryattachment.FieldID, field.TypeUUID))
 	id, ok := meauo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "MaintenanceEntryAttachment.id" for update`)}
@@ -366,8 +471,17 @@ func (meauo *MaintenanceEntryAttachmentUpdateOne) sqlSave(ctx context.Context) (
 	if value, ok := meauo.mutation.Filepath(); ok {
 		_spec.SetField(maintenanceentryattachment.FieldFilepath, field.TypeString, value)
 	}
+	if value, ok := meauo.mutation.ContentType(); ok {
+		_spec.SetField(maintenanceentryattachment.FieldContentType, field.TypeString, value)
+	}
+	if meauo.mutation.ContentTypeCleared() {
+		_spec.ClearField(maintenanceentryattachment.FieldContentType, field.TypeString)
+	}
 	if value, ok := meauo.mutation.UploadedAt(); ok {
 		_spec.SetField(maintenanceentryattachment.FieldUploadedAt, field.TypeTime, value)
+	}
+	if value, ok := meauo.mutation.UpdatedAt(); ok {
+		_spec.SetField(maintenanceentryattachment.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if meauo.mutation.EntryCleared() {
 		edge := &sqlgraph.EdgeSpec{

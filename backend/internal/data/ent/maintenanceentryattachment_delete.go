@@ -40,7 +40,7 @@ func (mead *MaintenanceEntryAttachmentDelete) ExecX(ctx context.Context) int {
 }
 
 func (mead *MaintenanceEntryAttachmentDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := sqlgraph.NewDeleteSpec(maintenanceentryattachment.Table, sqlgraph.NewFieldSpec(maintenanceentryattachment.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewDeleteSpec(maintenanceentryattachment.Table, sqlgraph.NewFieldSpec(maintenanceentryattachment.FieldID, field.TypeUUID))
 	if ps := mead.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {

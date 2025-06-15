@@ -445,17 +445,25 @@ func init() {
 	maintenanceentryattachmentFields := schema.MaintenanceEntryAttachment{}.Fields()
 	_ = maintenanceentryattachmentFields
 	// maintenanceentryattachmentDescFilename is the schema descriptor for filename field.
-	maintenanceentryattachmentDescFilename := maintenanceentryattachmentFields[0].Descriptor()
+	maintenanceentryattachmentDescFilename := maintenanceentryattachmentFields[1].Descriptor()
 	// maintenanceentryattachment.FilenameValidator is a validator for the "filename" field. It is called by the builders before save.
 	maintenanceentryattachment.FilenameValidator = maintenanceentryattachmentDescFilename.Validators[0].(func(string) error)
 	// maintenanceentryattachmentDescFilepath is the schema descriptor for filepath field.
-	maintenanceentryattachmentDescFilepath := maintenanceentryattachmentFields[1].Descriptor()
+	maintenanceentryattachmentDescFilepath := maintenanceentryattachmentFields[2].Descriptor()
 	// maintenanceentryattachment.FilepathValidator is a validator for the "filepath" field. It is called by the builders before save.
 	maintenanceentryattachment.FilepathValidator = maintenanceentryattachmentDescFilepath.Validators[0].(func(string) error)
 	// maintenanceentryattachmentDescUploadedAt is the schema descriptor for uploaded_at field.
-	maintenanceentryattachmentDescUploadedAt := maintenanceentryattachmentFields[2].Descriptor()
+	maintenanceentryattachmentDescUploadedAt := maintenanceentryattachmentFields[4].Descriptor()
 	// maintenanceentryattachment.DefaultUploadedAt holds the default value on creation for the uploaded_at field.
 	maintenanceentryattachment.DefaultUploadedAt = maintenanceentryattachmentDescUploadedAt.Default.(func() time.Time)
+	// maintenanceentryattachmentDescUpdatedAt is the schema descriptor for updated_at field.
+	maintenanceentryattachmentDescUpdatedAt := maintenanceentryattachmentFields[5].Descriptor()
+	// maintenanceentryattachment.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	maintenanceentryattachment.DefaultUpdatedAt = maintenanceentryattachmentDescUpdatedAt.Default.(func() time.Time)
+	// maintenanceentryattachmentDescID is the schema descriptor for id field.
+	maintenanceentryattachmentDescID := maintenanceentryattachmentFields[0].Descriptor()
+	// maintenanceentryattachment.DefaultID holds the default value on creation for the id field.
+	maintenanceentryattachment.DefaultID = maintenanceentryattachmentDescID.Default.(func() uuid.UUID)
 	notifierMixin := schema.Notifier{}.Mixin()
 	notifierMixinFields0 := notifierMixin[0].Fields()
 	_ = notifierMixinFields0

@@ -22,10 +22,6 @@ type MaintenanceEntryAttachmentCreate struct {
 	hooks    []Hook
 }
 
-func (meac *MaintenanceEntryAttachmentCreate) SetMaintenanceEntryID(entryID uuid.UUID) {
-	panic("unimplemented")
-}
-
 // SetFilename sets the "filename" field.
 func (meac *MaintenanceEntryAttachmentCreate) SetFilename(s string) *MaintenanceEntryAttachmentCreate {
 	meac.mutation.SetFilename(s)
@@ -35,6 +31,20 @@ func (meac *MaintenanceEntryAttachmentCreate) SetFilename(s string) *Maintenance
 // SetFilepath sets the "filepath" field.
 func (meac *MaintenanceEntryAttachmentCreate) SetFilepath(s string) *MaintenanceEntryAttachmentCreate {
 	meac.mutation.SetFilepath(s)
+	return meac
+}
+
+// SetContentType sets the "content_type" field.
+func (meac *MaintenanceEntryAttachmentCreate) SetContentType(s string) *MaintenanceEntryAttachmentCreate {
+	meac.mutation.SetContentType(s)
+	return meac
+}
+
+// SetNillableContentType sets the "content_type" field if the given value is not nil.
+func (meac *MaintenanceEntryAttachmentCreate) SetNillableContentType(s *string) *MaintenanceEntryAttachmentCreate {
+	if s != nil {
+		meac.SetContentType(*s)
+	}
 	return meac
 }
 
@@ -48,6 +58,40 @@ func (meac *MaintenanceEntryAttachmentCreate) SetUploadedAt(t time.Time) *Mainte
 func (meac *MaintenanceEntryAttachmentCreate) SetNillableUploadedAt(t *time.Time) *MaintenanceEntryAttachmentCreate {
 	if t != nil {
 		meac.SetUploadedAt(*t)
+	}
+	return meac
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (meac *MaintenanceEntryAttachmentCreate) SetUpdatedAt(t time.Time) *MaintenanceEntryAttachmentCreate {
+	meac.mutation.SetUpdatedAt(t)
+	return meac
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (meac *MaintenanceEntryAttachmentCreate) SetNillableUpdatedAt(t *time.Time) *MaintenanceEntryAttachmentCreate {
+	if t != nil {
+		meac.SetUpdatedAt(*t)
+	}
+	return meac
+}
+
+// SetMaintenanceEntryID sets the "maintenance_entry_id" field.
+func (meac *MaintenanceEntryAttachmentCreate) SetMaintenanceEntryID(u uuid.UUID) *MaintenanceEntryAttachmentCreate {
+	meac.mutation.SetMaintenanceEntryID(u)
+	return meac
+}
+
+// SetID sets the "id" field.
+func (meac *MaintenanceEntryAttachmentCreate) SetID(u uuid.UUID) *MaintenanceEntryAttachmentCreate {
+	meac.mutation.SetID(u)
+	return meac
+}
+
+// SetNillableID sets the "id" field if the given value is not nil.
+func (meac *MaintenanceEntryAttachmentCreate) SetNillableID(u *uuid.UUID) *MaintenanceEntryAttachmentCreate {
+	if u != nil {
+		meac.SetID(*u)
 	}
 	return meac
 }
@@ -102,6 +146,14 @@ func (meac *MaintenanceEntryAttachmentCreate) defaults() {
 		v := maintenanceentryattachment.DefaultUploadedAt()
 		meac.mutation.SetUploadedAt(v)
 	}
+	if _, ok := meac.mutation.UpdatedAt(); !ok {
+		v := maintenanceentryattachment.DefaultUpdatedAt()
+		meac.mutation.SetUpdatedAt(v)
+	}
+	if _, ok := meac.mutation.ID(); !ok {
+		v := maintenanceentryattachment.DefaultID()
+		meac.mutation.SetID(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -125,6 +177,12 @@ func (meac *MaintenanceEntryAttachmentCreate) check() error {
 	if _, ok := meac.mutation.UploadedAt(); !ok {
 		return &ValidationError{Name: "uploaded_at", err: errors.New(`ent: missing required field "MaintenanceEntryAttachment.uploaded_at"`)}
 	}
+	if _, ok := meac.mutation.UpdatedAt(); !ok {
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "MaintenanceEntryAttachment.updated_at"`)}
+	}
+	if _, ok := meac.mutation.MaintenanceEntryID(); !ok {
+		return &ValidationError{Name: "maintenance_entry_id", err: errors.New(`ent: missing required field "MaintenanceEntryAttachment.maintenance_entry_id"`)}
+	}
 	if len(meac.mutation.EntryIDs()) == 0 {
 		return &ValidationError{Name: "entry", err: errors.New(`ent: missing required edge "MaintenanceEntryAttachment.entry"`)}
 	}
@@ -142,8 +200,13 @@ func (meac *MaintenanceEntryAttachmentCreate) sqlSave(ctx context.Context) (*Mai
 		}
 		return nil, err
 	}
-	id := _spec.ID.Value.(int64)
-	_node.ID = int(id)
+	if _spec.ID.Value != nil {
+		if id, ok := _spec.ID.Value.(*uuid.UUID); ok {
+			_node.ID = *id
+		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
+			return nil, err
+		}
+	}
 	meac.mutation.id = &_node.ID
 	meac.mutation.done = true
 	return _node, nil
@@ -152,8 +215,12 @@ func (meac *MaintenanceEntryAttachmentCreate) sqlSave(ctx context.Context) (*Mai
 func (meac *MaintenanceEntryAttachmentCreate) createSpec() (*MaintenanceEntryAttachment, *sqlgraph.CreateSpec) {
 	var (
 		_node = &MaintenanceEntryAttachment{config: meac.config}
-		_spec = sqlgraph.NewCreateSpec(maintenanceentryattachment.Table, sqlgraph.NewFieldSpec(maintenanceentryattachment.FieldID, field.TypeInt))
+		_spec = sqlgraph.NewCreateSpec(maintenanceentryattachment.Table, sqlgraph.NewFieldSpec(maintenanceentryattachment.FieldID, field.TypeUUID))
 	)
+	if id, ok := meac.mutation.ID(); ok {
+		_node.ID = id
+		_spec.ID.Value = &id
+	}
 	if value, ok := meac.mutation.Filename(); ok {
 		_spec.SetField(maintenanceentryattachment.FieldFilename, field.TypeString, value)
 		_node.Filename = value
@@ -162,9 +229,17 @@ func (meac *MaintenanceEntryAttachmentCreate) createSpec() (*MaintenanceEntryAtt
 		_spec.SetField(maintenanceentryattachment.FieldFilepath, field.TypeString, value)
 		_node.Filepath = value
 	}
+	if value, ok := meac.mutation.ContentType(); ok {
+		_spec.SetField(maintenanceentryattachment.FieldContentType, field.TypeString, value)
+		_node.ContentType = value
+	}
 	if value, ok := meac.mutation.UploadedAt(); ok {
 		_spec.SetField(maintenanceentryattachment.FieldUploadedAt, field.TypeTime, value)
 		_node.UploadedAt = value
+	}
+	if value, ok := meac.mutation.UpdatedAt(); ok {
+		_spec.SetField(maintenanceentryattachment.FieldUpdatedAt, field.TypeTime, value)
+		_node.UpdatedAt = value
 	}
 	if nodes := meac.mutation.EntryIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -180,7 +255,7 @@ func (meac *MaintenanceEntryAttachmentCreate) createSpec() (*MaintenanceEntryAtt
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.maintenance_entry_attachments = &nodes[0]
+		_node.MaintenanceEntryID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
@@ -231,10 +306,6 @@ func (meacb *MaintenanceEntryAttachmentCreateBulk) Save(ctx context.Context) ([]
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil {
-					id := specs[i].ID.Value.(int64)
-					nodes[i].ID = int(id)
-				}
 				mutation.done = true
 				return nodes[i], nil
 			})

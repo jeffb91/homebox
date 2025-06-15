@@ -52,7 +52,7 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "maintenanceentryattachment" package.
 	AttachmentsInverseTable = "maintenance_entry_attachments"
 	// AttachmentsColumn is the table column denoting the attachments relation/edge.
-	AttachmentsColumn = "maintenance_entry_attachments"
+	AttachmentsColumn = "maintenance_entry_id"
 )
 
 // Columns holds all SQL columns for maintenanceentry fields.

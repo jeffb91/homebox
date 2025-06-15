@@ -488,7 +488,9 @@ func (meq *MaintenanceEntryQuery) loadAttachments(ctx context.Context, query *Ma
 			init(nodes[i])
 		}
 	}
-	query.withFKs = true
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(maintenanceentryattachment.FieldMaintenanceEntryID)
+	}
 	query.Where(predicate.MaintenanceEntryAttachment(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(maintenanceentry.AttachmentsColumn), fks...))
 	}))
@@ -497,13 +499,10 @@ func (meq *MaintenanceEntryQuery) loadAttachments(ctx context.Context, query *Ma
 		return err
 	}
 	for _, n := range neighbors {
-		fk := n.maintenance_entry_attachments
-		if fk == nil {
-			return fmt.Errorf(`foreign-key "maintenance_entry_attachments" is nil for node %v`, n.ID)
-		}
-		node, ok := nodeids[*fk]
+		fk := n.MaintenanceEntryID
+		node, ok := nodeids[fk]
 		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "maintenance_entry_attachments" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "maintenance_entry_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}

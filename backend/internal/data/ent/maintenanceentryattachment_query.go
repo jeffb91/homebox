@@ -25,7 +25,6 @@ type MaintenanceEntryAttachmentQuery struct {
 	inters     []Interceptor
 	predicates []predicate.MaintenanceEntryAttachment
 	withEntry  *MaintenanceEntryQuery
-	withFKs    bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -108,8 +107,8 @@ func (meaq *MaintenanceEntryAttachmentQuery) FirstX(ctx context.Context) *Mainte
 
 // FirstID returns the first MaintenanceEntryAttachment ID from the query.
 // Returns a *NotFoundError when no MaintenanceEntryAttachment ID was found.
-func (meaq *MaintenanceEntryAttachmentQuery) FirstID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (meaq *MaintenanceEntryAttachmentQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
+	var ids []uuid.UUID
 	if ids, err = meaq.Limit(1).IDs(setContextOp(ctx, meaq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
@@ -121,7 +120,7 @@ func (meaq *MaintenanceEntryAttachmentQuery) FirstID(ctx context.Context) (id in
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (meaq *MaintenanceEntryAttachmentQuery) FirstIDX(ctx context.Context) int {
+func (meaq *MaintenanceEntryAttachmentQuery) FirstIDX(ctx context.Context) uuid.UUID {
 	id, err := meaq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -159,8 +158,8 @@ func (meaq *MaintenanceEntryAttachmentQuery) OnlyX(ctx context.Context) *Mainten
 // OnlyID is like Only, but returns the only MaintenanceEntryAttachment ID in the query.
 // Returns a *NotSingularError when more than one MaintenanceEntryAttachment ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (meaq *MaintenanceEntryAttachmentQuery) OnlyID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (meaq *MaintenanceEntryAttachmentQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
+	var ids []uuid.UUID
 	if ids, err = meaq.Limit(2).IDs(setContextOp(ctx, meaq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
@@ -176,7 +175,7 @@ func (meaq *MaintenanceEntryAttachmentQuery) OnlyID(ctx context.Context) (id int
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (meaq *MaintenanceEntryAttachmentQuery) OnlyIDX(ctx context.Context) int {
+func (meaq *MaintenanceEntryAttachmentQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 	id, err := meaq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -204,7 +203,7 @@ func (meaq *MaintenanceEntryAttachmentQuery) AllX(ctx context.Context) []*Mainte
 }
 
 // IDs executes the query and returns a list of MaintenanceEntryAttachment IDs.
-func (meaq *MaintenanceEntryAttachmentQuery) IDs(ctx context.Context) (ids []int, err error) {
+func (meaq *MaintenanceEntryAttachmentQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
 	if meaq.ctx.Unique == nil && meaq.path != nil {
 		meaq.Unique(true)
 	}
@@ -216,7 +215,7 @@ func (meaq *MaintenanceEntryAttachmentQuery) IDs(ctx context.Context) (ids []int
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (meaq *MaintenanceEntryAttachmentQuery) IDsX(ctx context.Context) []int {
+func (meaq *MaintenanceEntryAttachmentQuery) IDsX(ctx context.Context) []uuid.UUID {
 	ids, err := meaq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -371,18 +370,11 @@ func (meaq *MaintenanceEntryAttachmentQuery) prepareQuery(ctx context.Context) e
 func (meaq *MaintenanceEntryAttachmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*MaintenanceEntryAttachment, error) {
 	var (
 		nodes       = []*MaintenanceEntryAttachment{}
-		withFKs     = meaq.withFKs
 		_spec       = meaq.querySpec()
 		loadedTypes = [1]bool{
 			meaq.withEntry != nil,
 		}
 	)
-	if meaq.withEntry != nil {
-		withFKs = true
-	}
-	if withFKs {
-		_spec.Node.Columns = append(_spec.Node.Columns, maintenanceentryattachment.ForeignKeys...)
-	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*MaintenanceEntryAttachment).scanValues(nil, columns)
 	}
@@ -414,10 +406,7 @@ func (meaq *MaintenanceEntryAttachmentQuery) loadEntry(ctx context.Context, quer
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*MaintenanceEntryAttachment)
 	for i := range nodes {
-		if nodes[i].maintenance_entry_attachments == nil {
-			continue
-		}
-		fk := *nodes[i].maintenance_entry_attachments
+		fk := nodes[i].MaintenanceEntryID
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -434,7 +423,7 @@ func (meaq *MaintenanceEntryAttachmentQuery) loadEntry(ctx context.Context, quer
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "maintenance_entry_attachments" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "maintenance_entry_id" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -453,7 +442,7 @@ func (meaq *MaintenanceEntryAttachmentQuery) sqlCount(ctx context.Context) (int,
 }
 
 func (meaq *MaintenanceEntryAttachmentQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(maintenanceentryattachment.Table, maintenanceentryattachment.Columns, sqlgraph.NewFieldSpec(maintenanceentryattachment.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewQuerySpec(maintenanceentryattachment.Table, maintenanceentryattachment.Columns, sqlgraph.NewFieldSpec(maintenanceentryattachment.FieldID, field.TypeUUID))
 	_spec.From = meaq.sql
 	if unique := meaq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
@@ -467,6 +456,9 @@ func (meaq *MaintenanceEntryAttachmentQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != maintenanceentryattachment.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
+		}
+		if meaq.withEntry != nil {
+			_spec.Node.AddColumnOnce(maintenanceentryattachment.FieldMaintenanceEntryID)
 		}
 	}
 	if ps := meaq.predicates; len(ps) > 0 {

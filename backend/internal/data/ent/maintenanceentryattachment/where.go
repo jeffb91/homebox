@@ -7,51 +7,52 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/google/uuid"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/predicate"
 )
 
 // ID filters vertices based on their ID field.
-func ID(id int) predicate.MaintenanceEntryAttachment {
+func ID(id uuid.UUID) predicate.MaintenanceEntryAttachment {
 	return predicate.MaintenanceEntryAttachment(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id int) predicate.MaintenanceEntryAttachment {
+func IDEQ(id uuid.UUID) predicate.MaintenanceEntryAttachment {
 	return predicate.MaintenanceEntryAttachment(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id int) predicate.MaintenanceEntryAttachment {
+func IDNEQ(id uuid.UUID) predicate.MaintenanceEntryAttachment {
 	return predicate.MaintenanceEntryAttachment(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...int) predicate.MaintenanceEntryAttachment {
+func IDIn(ids ...uuid.UUID) predicate.MaintenanceEntryAttachment {
 	return predicate.MaintenanceEntryAttachment(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...int) predicate.MaintenanceEntryAttachment {
+func IDNotIn(ids ...uuid.UUID) predicate.MaintenanceEntryAttachment {
 	return predicate.MaintenanceEntryAttachment(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id int) predicate.MaintenanceEntryAttachment {
+func IDGT(id uuid.UUID) predicate.MaintenanceEntryAttachment {
 	return predicate.MaintenanceEntryAttachment(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id int) predicate.MaintenanceEntryAttachment {
+func IDGTE(id uuid.UUID) predicate.MaintenanceEntryAttachment {
 	return predicate.MaintenanceEntryAttachment(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id int) predicate.MaintenanceEntryAttachment {
+func IDLT(id uuid.UUID) predicate.MaintenanceEntryAttachment {
 	return predicate.MaintenanceEntryAttachment(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id int) predicate.MaintenanceEntryAttachment {
+func IDLTE(id uuid.UUID) predicate.MaintenanceEntryAttachment {
 	return predicate.MaintenanceEntryAttachment(sql.FieldLTE(FieldID, id))
 }
 
@@ -65,9 +66,24 @@ func Filepath(v string) predicate.MaintenanceEntryAttachment {
 	return predicate.MaintenanceEntryAttachment(sql.FieldEQ(FieldFilepath, v))
 }
 
+// ContentType applies equality check predicate on the "content_type" field. It's identical to ContentTypeEQ.
+func ContentType(v string) predicate.MaintenanceEntryAttachment {
+	return predicate.MaintenanceEntryAttachment(sql.FieldEQ(FieldContentType, v))
+}
+
 // UploadedAt applies equality check predicate on the "uploaded_at" field. It's identical to UploadedAtEQ.
 func UploadedAt(v time.Time) predicate.MaintenanceEntryAttachment {
 	return predicate.MaintenanceEntryAttachment(sql.FieldEQ(FieldUploadedAt, v))
+}
+
+// UpdatedAt applies equality check predicate on the "updated_at" field. It's identical to UpdatedAtEQ.
+func UpdatedAt(v time.Time) predicate.MaintenanceEntryAttachment {
+	return predicate.MaintenanceEntryAttachment(sql.FieldEQ(FieldUpdatedAt, v))
+}
+
+// MaintenanceEntryID applies equality check predicate on the "maintenance_entry_id" field. It's identical to MaintenanceEntryIDEQ.
+func MaintenanceEntryID(v uuid.UUID) predicate.MaintenanceEntryAttachment {
+	return predicate.MaintenanceEntryAttachment(sql.FieldEQ(FieldMaintenanceEntryID, v))
 }
 
 // FilenameEQ applies the EQ predicate on the "filename" field.
@@ -200,6 +216,81 @@ func FilepathContainsFold(v string) predicate.MaintenanceEntryAttachment {
 	return predicate.MaintenanceEntryAttachment(sql.FieldContainsFold(FieldFilepath, v))
 }
 
+// ContentTypeEQ applies the EQ predicate on the "content_type" field.
+func ContentTypeEQ(v string) predicate.MaintenanceEntryAttachment {
+	return predicate.MaintenanceEntryAttachment(sql.FieldEQ(FieldContentType, v))
+}
+
+// ContentTypeNEQ applies the NEQ predicate on the "content_type" field.
+func ContentTypeNEQ(v string) predicate.MaintenanceEntryAttachment {
+	return predicate.MaintenanceEntryAttachment(sql.FieldNEQ(FieldContentType, v))
+}
+
+// ContentTypeIn applies the In predicate on the "content_type" field.
+func ContentTypeIn(vs ...string) predicate.MaintenanceEntryAttachment {
+	return predicate.MaintenanceEntryAttachment(sql.FieldIn(FieldContentType, vs...))
+}
+
+// ContentTypeNotIn applies the NotIn predicate on the "content_type" field.
+func ContentTypeNotIn(vs ...string) predicate.MaintenanceEntryAttachment {
+	return predicate.MaintenanceEntryAttachment(sql.FieldNotIn(FieldContentType, vs...))
+}
+
+// ContentTypeGT applies the GT predicate on the "content_type" field.
+func ContentTypeGT(v string) predicate.MaintenanceEntryAttachment {
+	return predicate.MaintenanceEntryAttachment(sql.FieldGT(FieldContentType, v))
+}
+
+// ContentTypeGTE applies the GTE predicate on the "content_type" field.
+func ContentTypeGTE(v string) predicate.MaintenanceEntryAttachment {
+	return predicate.MaintenanceEntryAttachment(sql.FieldGTE(FieldContentType, v))
+}
+
+// ContentTypeLT applies the LT predicate on the "content_type" field.
+func ContentTypeLT(v string) predicate.MaintenanceEntryAttachment {
+	return predicate.MaintenanceEntryAttachment(sql.FieldLT(FieldContentType, v))
+}
+
+// ContentTypeLTE applies the LTE predicate on the "content_type" field.
+func ContentTypeLTE(v string) predicate.MaintenanceEntryAttachment {
+	return predicate.MaintenanceEntryAttachment(sql.FieldLTE(FieldContentType, v))
+}
+
+// ContentTypeContains applies the Contains predicate on the "content_type" field.
+func ContentTypeContains(v string) predicate.MaintenanceEntryAttachment {
+	return predicate.MaintenanceEntryAttachment(sql.FieldContains(FieldContentType, v))
+}
+
+// ContentTypeHasPrefix applies the HasPrefix predicate on the "content_type" field.
+func ContentTypeHasPrefix(v string) predicate.MaintenanceEntryAttachment {
+	return predicate.MaintenanceEntryAttachment(sql.FieldHasPrefix(FieldContentType, v))
+}
+
+// ContentTypeHasSuffix applies the HasSuffix predicate on the "content_type" field.
+func ContentTypeHasSuffix(v string) predicate.MaintenanceEntryAttachment {
+	return predicate.MaintenanceEntryAttachment(sql.FieldHasSuffix(FieldContentType, v))
+}
+
+// ContentTypeIsNil applies the IsNil predicate on the "content_type" field.
+func ContentTypeIsNil() predicate.MaintenanceEntryAttachment {
+	return predicate.MaintenanceEntryAttachment(sql.FieldIsNull(FieldContentType))
+}
+
+// ContentTypeNotNil applies the NotNil predicate on the "content_type" field.
+func ContentTypeNotNil() predicate.MaintenanceEntryAttachment {
+	return predicate.MaintenanceEntryAttachment(sql.FieldNotNull(FieldContentType))
+}
+
+// ContentTypeEqualFold applies the EqualFold predicate on the "content_type" field.
+func ContentTypeEqualFold(v string) predicate.MaintenanceEntryAttachment {
+	return predicate.MaintenanceEntryAttachment(sql.FieldEqualFold(FieldContentType, v))
+}
+
+// ContentTypeContainsFold applies the ContainsFold predicate on the "content_type" field.
+func ContentTypeContainsFold(v string) predicate.MaintenanceEntryAttachment {
+	return predicate.MaintenanceEntryAttachment(sql.FieldContainsFold(FieldContentType, v))
+}
+
 // UploadedAtEQ applies the EQ predicate on the "uploaded_at" field.
 func UploadedAtEQ(v time.Time) predicate.MaintenanceEntryAttachment {
 	return predicate.MaintenanceEntryAttachment(sql.FieldEQ(FieldUploadedAt, v))
@@ -238,6 +329,66 @@ func UploadedAtLT(v time.Time) predicate.MaintenanceEntryAttachment {
 // UploadedAtLTE applies the LTE predicate on the "uploaded_at" field.
 func UploadedAtLTE(v time.Time) predicate.MaintenanceEntryAttachment {
 	return predicate.MaintenanceEntryAttachment(sql.FieldLTE(FieldUploadedAt, v))
+}
+
+// UpdatedAtEQ applies the EQ predicate on the "updated_at" field.
+func UpdatedAtEQ(v time.Time) predicate.MaintenanceEntryAttachment {
+	return predicate.MaintenanceEntryAttachment(sql.FieldEQ(FieldUpdatedAt, v))
+}
+
+// UpdatedAtNEQ applies the NEQ predicate on the "updated_at" field.
+func UpdatedAtNEQ(v time.Time) predicate.MaintenanceEntryAttachment {
+	return predicate.MaintenanceEntryAttachment(sql.FieldNEQ(FieldUpdatedAt, v))
+}
+
+// UpdatedAtIn applies the In predicate on the "updated_at" field.
+func UpdatedAtIn(vs ...time.Time) predicate.MaintenanceEntryAttachment {
+	return predicate.MaintenanceEntryAttachment(sql.FieldIn(FieldUpdatedAt, vs...))
+}
+
+// UpdatedAtNotIn applies the NotIn predicate on the "updated_at" field.
+func UpdatedAtNotIn(vs ...time.Time) predicate.MaintenanceEntryAttachment {
+	return predicate.MaintenanceEntryAttachment(sql.FieldNotIn(FieldUpdatedAt, vs...))
+}
+
+// UpdatedAtGT applies the GT predicate on the "updated_at" field.
+func UpdatedAtGT(v time.Time) predicate.MaintenanceEntryAttachment {
+	return predicate.MaintenanceEntryAttachment(sql.FieldGT(FieldUpdatedAt, v))
+}
+
+// UpdatedAtGTE applies the GTE predicate on the "updated_at" field.
+func UpdatedAtGTE(v time.Time) predicate.MaintenanceEntryAttachment {
+	return predicate.MaintenanceEntryAttachment(sql.FieldGTE(FieldUpdatedAt, v))
+}
+
+// UpdatedAtLT applies the LT predicate on the "updated_at" field.
+func UpdatedAtLT(v time.Time) predicate.MaintenanceEntryAttachment {
+	return predicate.MaintenanceEntryAttachment(sql.FieldLT(FieldUpdatedAt, v))
+}
+
+// UpdatedAtLTE applies the LTE predicate on the "updated_at" field.
+func UpdatedAtLTE(v time.Time) predicate.MaintenanceEntryAttachment {
+	return predicate.MaintenanceEntryAttachment(sql.FieldLTE(FieldUpdatedAt, v))
+}
+
+// MaintenanceEntryIDEQ applies the EQ predicate on the "maintenance_entry_id" field.
+func MaintenanceEntryIDEQ(v uuid.UUID) predicate.MaintenanceEntryAttachment {
+	return predicate.MaintenanceEntryAttachment(sql.FieldEQ(FieldMaintenanceEntryID, v))
+}
+
+// MaintenanceEntryIDNEQ applies the NEQ predicate on the "maintenance_entry_id" field.
+func MaintenanceEntryIDNEQ(v uuid.UUID) predicate.MaintenanceEntryAttachment {
+	return predicate.MaintenanceEntryAttachment(sql.FieldNEQ(FieldMaintenanceEntryID, v))
+}
+
+// MaintenanceEntryIDIn applies the In predicate on the "maintenance_entry_id" field.
+func MaintenanceEntryIDIn(vs ...uuid.UUID) predicate.MaintenanceEntryAttachment {
+	return predicate.MaintenanceEntryAttachment(sql.FieldIn(FieldMaintenanceEntryID, vs...))
+}
+
+// MaintenanceEntryIDNotIn applies the NotIn predicate on the "maintenance_entry_id" field.
+func MaintenanceEntryIDNotIn(vs ...uuid.UUID) predicate.MaintenanceEntryAttachment {
+	return predicate.MaintenanceEntryAttachment(sql.FieldNotIn(FieldMaintenanceEntryID, vs...))
 }
 
 // HasEntry applies the HasEdge predicate on the "entry" edge.

@@ -2145,7 +2145,7 @@ func (c *MaintenanceEntryAttachmentClient) UpdateOne(mea *MaintenanceEntryAttach
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *MaintenanceEntryAttachmentClient) UpdateOneID(id int) *MaintenanceEntryAttachmentUpdateOne {
+func (c *MaintenanceEntryAttachmentClient) UpdateOneID(id uuid.UUID) *MaintenanceEntryAttachmentUpdateOne {
 	mutation := newMaintenanceEntryAttachmentMutation(c.config, OpUpdateOne, withMaintenanceEntryAttachmentID(id))
 	return &MaintenanceEntryAttachmentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -2162,7 +2162,7 @@ func (c *MaintenanceEntryAttachmentClient) DeleteOne(mea *MaintenanceEntryAttach
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *MaintenanceEntryAttachmentClient) DeleteOneID(id int) *MaintenanceEntryAttachmentDeleteOne {
+func (c *MaintenanceEntryAttachmentClient) DeleteOneID(id uuid.UUID) *MaintenanceEntryAttachmentDeleteOne {
 	builder := c.Delete().Where(maintenanceentryattachment.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -2179,12 +2179,12 @@ func (c *MaintenanceEntryAttachmentClient) Query() *MaintenanceEntryAttachmentQu
 }
 
 // Get returns a MaintenanceEntryAttachment entity by its id.
-func (c *MaintenanceEntryAttachmentClient) Get(ctx context.Context, id int) (*MaintenanceEntryAttachment, error) {
+func (c *MaintenanceEntryAttachmentClient) Get(ctx context.Context, id uuid.UUID) (*MaintenanceEntryAttachment, error) {
 	return c.Query().Where(maintenanceentryattachment.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *MaintenanceEntryAttachmentClient) GetX(ctx context.Context, id int) *MaintenanceEntryAttachment {
+func (c *MaintenanceEntryAttachmentClient) GetX(ctx context.Context, id uuid.UUID) *MaintenanceEntryAttachment {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)

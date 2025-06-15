@@ -188,10 +188,10 @@ type MaintenanceEntryAttachmentCreate struct {
 
 func (r *MaintenanceEntryRepository) AddAttachment(ctx context.Context, entryID uuid.UUID, input MaintenanceEntryAttachmentCreate) error {
 	_, err := r.db.MaintenanceEntryAttachment.Create().
-		SetMaintenanceEntryID(entryID).
+		SetEntryID(entryID).
 		SetFilename(input.Filename).
 		SetContentType(input.ContentType).
-		SetPath(input.Path).
+		SetFilepath(input.Path).
 		Save(ctx)
 
 	return err

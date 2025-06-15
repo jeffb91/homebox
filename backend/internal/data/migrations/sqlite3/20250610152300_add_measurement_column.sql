@@ -4,7 +4,6 @@
 ALTER TABLE maintenance_entries ADD COLUMN measurement TEXT;
 
 -- STAP 2: Create "attachments" table
--- +goose Up
 CREATE TABLE IF NOT EXISTS "maintenance_entry_attachments" (
   "id" TEXT NOT NULL,
   "created_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
