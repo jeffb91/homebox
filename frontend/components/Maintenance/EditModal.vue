@@ -24,6 +24,41 @@
           </Button>
         </DialogFooter>
       </form>
+      <section class="mt-4">
+        <h3>{{ $t("maintenance.attachments.title") }}</h3>
+        <input type="file" multiple @change="onFileChange" />
+        <button @click="uploadFiles" :disabled="uploading || files.length === 0">
+          {{ $t("maintenance.attachments.upload_button") }}
+        </button>
+        <ul>
+          <li v-for="attachment in attachments" :key="attachment.id" class="flex items-center justify-between space-x-2">
+            <span>{{ attachment.title || attachment.filename }}</span>
+            <div class="flex space-x-2">
+              <!-- Download knop -->
+              <button
+                type="button"
+                @click="downloadAttachment(attachment)"
+                class="btn btn-sm btn-outline"
+                :title="$t('maintenance.attachments.download')"
+              >
+                ⬇️
+              </button>
+
+              <!-- Verwijder knop -->
+              <button
+                type="button"
+                @click="deleteAttachment(attachment.id)"
+                class="btn btn-sm btn-danger"
+                :title="$t('maintenance.attachments.delete')"
+              >
+                🗑️
+              </button>
+            </div>
+          </li>
+        </ul>
+
+      </section>
+
     </DialogContent>
   </Dialog>
 </template>
@@ -36,6 +71,7 @@
   import DatePicker from "~~/components/Form/DatePicker.vue";
   import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
   import { useDialog } from "@/components/ui/dialog-provider";
+  import { ref, reactive, watch, onMounted } from "vue";
 
   const { openDialog, closeDialog } = useDialog();
 
@@ -54,6 +90,10 @@
     measurement: "", // ✅ nieuw veld
     itemId: null as string | null,
   });
+
+  const files = ref<File[]>([]);
+  const attachments = ref<Array<{ id: string; title?: string; filename: string }>>([]);
+  const uploading = ref(false);
 
   async function dispatchFormSubmit() {
     if (entry.id) {
@@ -178,4 +218,77 @@
   }
 
   defineExpose({ openCreateModal, openUpdateModal, deleteEntry, complete, duplicate });
+
+  // Ophalen bestaande attachments als je een entry hebt met id
+  async function fetchAttachments() {
+    if (!entry.id) return;
+    const { data, error } = await api.maintenance.getAttachments(entry.id);
+    if (!error) {
+      attachments.value = data;
+    }
+  }
+
+  watch(() => entry.id, () => {
+    if (entry.id) fetchAttachments();
+  });
+
+  function onFileChange(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (input.files) {
+      files.value = Array.from(input.files);
+    }
+  }
+
+  async function uploadFiles() {
+    if (!entry.id || files.value.length === 0) return;
+    uploading.value = true;
+
+    const formData = new FormData();
+    files.value.forEach(f => formData.append("files", f));
+
+    const { error, data } = await api.maintenance.uploadAttachments(entry.id, formData);
+    uploading.value = false;
+
+    if (error) {
+      toast.error(t("maintenance.attachments.upload_failed"));
+      return;
+    }
+
+    // Voeg nieuwe attachments toe aan lijst en reset file input
+    attachments.value.push(...data);
+    files.value = [];
+  }
+
+  async function downloadAttachment(attachment: { id: string; filename: string }) {
+    // Simpelste manier: url van backend ophalen en een link forceren om te downloaden
+    try {
+      // Vervang met jouw backend url die het bestand serveert, bv:
+      const url = await api.maintenance.getAttachmentUrl(attachment.id);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = attachment.filename;
+      link.target = "_blank";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch {
+      toast.error(t("maintenance.attachments.download_failed"));
+    }
+  }
+
+  async function deleteAttachment(id: string) {
+    if (!confirm(t("maintenance.attachments.delete_confirm"))) {
+      return;
+    }
+    const { error } = await api.maintenance.deleteAttachment(id);
+    if (error) {
+      toast.error(t("maintenance.attachments.delete_failed"));
+      return;
+    }
+    // Verwijder attachment lokaal uit lijst
+    attachments.value = attachments.value.filter(a => a.id !== id);
+    toast.success(t("maintenance.attachments.delete_success"));
+  }
+
 </script>
+

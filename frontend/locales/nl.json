@@ -296,36 +296,44 @@
     },
     "maintenance": {
         "filter": {
-            "both": "Beide",
-            "completed": "Voltooid",
-            "scheduled": "Gepland"
+        "both": "Beide",
+        "completed": "Voltooid",
+        "scheduled": "Gepland"
         },
         "list": {
-            "complete": "Compleet",
-            "create_first": "Maak je eerste invoer aan",
-            "delete": "Verwijderen",
-            "duplicate": "Dupliceren",
-            "edit": "Bewerken",
-            "new": "Nieuw"
+        "complete": "Compleet",
+        "create_first": "Maak je eerste invoer aan",
+        "delete": "Verwijderen",
+        "duplicate": "Dupliceren",
+        "edit": "Bewerken",
+        "new": "Nieuw"
         },
         "modal": {
-            "completed_date": "Datum Voltooid",
-            "cost": "Kosten",
-            "delete_confirmation": "Weet u zeker dat u deze gegevens wilt verwijderen?",
-            "edit_action": "Bijwerken",
-            "edit_title": "Invoer bewerken",
-            "entry_name": "Invoernaam",
-            "new_action": "Maak",
-            "new_title": "Nieuwe invoer",
-            "notes": "Opmerkingen",
-            "scheduled_date": "Geplande datum",
-            "measurement": "Meetwaarde"
+        "completed_date": "Datum Voltooid",
+        "cost": "Kosten",
+        "delete_confirmation": "Weet u zeker dat u deze gegevens wilt verwijderen?",
+        "edit_action": "Bijwerken",
+        "edit_title": "Invoer bewerken",
+        "entry_name": "Invoernaam",
+        "new_action": "Maak",
+        "new_title": "Nieuwe invoer",
+        "notes": "Opmerkingen",
+        "scheduled_date": "Geplande datum",
+        "measurement": "Meetwaarde"
+        },
+        "attachments": {
+        "download": "Downloaden",
+        "delete": "Verwijderen",
+        "delete_confirm": "Weet je zeker dat je deze bijlage wilt verwijderen?",
+        "download_failed": "Downloaden is mislukt",
+        "delete_failed": "Verwijderen is mislukt",
+        "delete_success": "Bijlage verwijderd"
         },
         "monthly_average": "Maandelijks",
         "toast": {
-            "failed_to_create": "Kan invoer niet maken",
-            "failed_to_delete": "Kan invoer niet verwijderen",
-            "failed_to_update": "Kan invoer niet bijwerken"
+        "failed_to_create": "Kan invoer niet maken",
+        "failed_to_delete": "Kan invoer niet verwijderen",
+        "failed_to_update": "Kan invoer niet bijwerken"
         },
         "total_cost": "Totale kosten",
         "total_entries": "Totaal aantal invoeren"
