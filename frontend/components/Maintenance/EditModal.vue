@@ -1,6 +1,6 @@
 <template>
   <Dialog dialog-id="edit-maintenance">
-    <DialogContent class="overflow-y-auto max-h-[80vh]">
+    <DialogContent class="overflow-y-auto max-h-[95vh]">
       <DialogHeader>
         <DialogTitle>
           {{ entry.id ? t("maintenance.modal.edit_title") : t("maintenance.modal.new_title") }}
@@ -18,46 +18,76 @@
 
         <!-- Attachments sectie -->
         <div class="mt-4">
-          <h3 class="text-lg font-medium leading-6">{{ t("items.attachments") }}</h3>
-          <p class="text-xs mb-2">{{ t("items.changes_persisted_immediately") }}</p>
-
-          <Card ref="attDropZone" class="shadow-inner p-4 mb-4">
-            <div v-if="attDropZoneActive" class="grid grid-cols-4 gap-4">
-              <DropZone @drop="dropPhoto"> {{ $t("items.photos") }} </DropZone>
-              <DropZone @drop="dropWarranty"> {{ $t("items.warranty") }} </DropZone>
-              <DropZone @drop="dropManual"> {{ $t("items.manuals") }} </DropZone>
-              <DropZone @drop="dropAttachment"> {{ $t("items.attachments") }} </DropZone>
-              <DropZone @drop="dropReceipt"> {{ $t("items.receipts") }} </DropZone>
-            </div>
-            <button
-              v-else
-              type="button"
-              class="grid h-24 w-full place-content-center border-2 border-dashed border-primary"
-              @click="clickUpload"
-            >
-              <input ref="refAttachmentInput" hidden type="file" @change="uploadImage" />
-              <p>{{ t("items.drag_and_drop") }}</p>
-            </button>
-          </Card>
-
-          <ul v-if="entry.attachments.length" class="divide-y rounded-md border">
-            <li
-              v-for="att in entry.attachments"
-              :key="att.id"
-              class="grid grid-cols-6 items-center py-2 px-3 text-sm"
-            >
-              <span class="col-span-4">{{ att.title }}</span>
-              <span>{{ t(`items.${att.type}`) }}</span>
-              <div class="flex gap-2 justify-end">
-                <Button size="icon" variant="destructive" @click="deleteAttachment(att.id)">
-                  <MdiDelete />
-                </Button>
-                <Button size="icon" @click="openAttachmentEditDialog(att)">
-                  <MdiPencil />
-                </Button>
+          <Card ref="attDropZone" class="overflow-visible shadow-xl">
+              <div class="px-4 py-5 sm:px-6">
+                <h3 class="text-lg font-medium leading-6">{{ $t("items.attachments") }}</h3>
+                <p class="text-xs">{{ $t("items.changes_persisted_immediately") }}</p>
               </div>
-            </li>
-          </ul>
+              <div class="border-t p-4">
+                <div v-if="attDropZoneActive" class="grid grid-cols-4 gap-4">
+                  <DropZone @drop="dropPhoto"> {{ $t("items.photos") }} </DropZone>
+                  <DropZone @drop="dropWarranty"> {{ $t("items.warranty") }} </DropZone>
+                  <DropZone @drop="dropManual"> {{ $t("items.manuals") }} </DropZone>
+                  <DropZone @drop="dropAttachment"> {{ $t("items.attachments") }} </DropZone>
+                  <DropZone @drop="dropReceipt"> {{ $t("items.receipts") }} </DropZone>
+                </div>
+                <button
+                  v-else
+                  class="grid h-24 w-full place-content-center border-2 border-dashed border-primary"
+                  @click="clickUpload"
+                >
+                  <input ref="refAttachmentInput" hidden type="file" @change="uploadImage" />
+                  <p>{{ $t("items.drag_and_drop") }}</p>
+                </button>
+              </div>
+
+              <div class="border-t p-4">
+                <ul role="list" class="divide-y rounded-md border">
+                  <li
+                    v-for="attachment in entry.attachments"
+                    :key="attachment.id"
+                    class="grid grid-cols-6 justify-between py-3 pl-3 pr-4 text-sm"
+                  >
+                    <p class="col-span-4 my-auto">
+                      {{ attachment.filename }}
+                    </p>
+                    <p class="my-auto">
+                      {{ $t(`entry.${attachment.type}`) || "" }}
+                    </p>
+                    <div class="flex justify-end gap-2">
+                      <Tooltip>
+                        <TooltipTrigger as-child>
+                          <Button variant="destructive" size="icon" @click="deleteAttachment(attachment.id)">
+                            <MdiDelete />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>{{ $t("global.delete") }}</TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger as-child>
+                          <Button size="icon" @click="openAttachmentEditDialog(attachment)">
+                            <MdiPencil />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>{{ $t("global.edit") }}</TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger as-child>
+                          <a
+                            :class="buttonVariants({ size: 'icon' })"
+                            :href="attachmentURL(attachment.id)"
+                            :download="attachment.title"
+                          >
+                            <MdiDownload />
+                          </a>
+                        </TooltipTrigger>
+                        <TooltipContent> {{ $t("components.item.attachments_list.download") }} </TooltipContent>
+                      </Tooltip>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+            </Card>
         </div>
 
         <DialogFooter class="mt-4 flex justify-end">
@@ -113,6 +143,12 @@
       </DialogFooter>
     </DialogContent>
   </Dialog>
+
+  <ul>
+    <li v-for="attachment in entry.attachments" :key="attachment.id">
+      {{ attachment.filename }}
+    </li>
+  </ul>
 </template>
 
 <script setup lang="ts">
@@ -131,6 +167,10 @@
   import MdiDelete from "~icons/mdi/delete";
   import MdiPencil from "~icons/mdi/pencil";
   import { AttachmentTypes } from "~~/lib/api/types/non-generated";
+  import MdiPaperclip from "~icons/mdi/paperclip";
+  import MdiDownload from "~icons/mdi/download";
+  import MdiOpenInNew from "~icons/mdi/open-in-new";
+  import { buttonVariants } from "@/components/ui/button";
   //import { useDropZone } from "@/composables/useDropZone";
   //import DropZone from "@/components/DropZone.vue";
   //import { Card, Button, Label } from "@/components/ui";
@@ -222,7 +262,7 @@
     openDialog("edit-maintenance");
   };
 
-  const openUpdateModal = (maintenanceEntry: MaintenanceEntry | MaintenanceEntryWithDetails) => {
+  const openUpdateModal = async (maintenanceEntry: MaintenanceEntry | MaintenanceEntryWithDetails) => {
     entry.id = maintenanceEntry.id;
     entry.name = maintenanceEntry.name;
     entry.completedDate = new Date(maintenanceEntry.completedDate);
@@ -231,6 +271,13 @@
     entry.cost = maintenanceEntry.cost;
     entry.measurement = maintenanceEntry.measurement;
     entry.itemId = null;
+
+    const res = await api.maintenance.getAttachments(entry.id ?? "");
+    console.log("API response van getAttachments:", res);
+    //probleem hieronder is een spookprobleem in studio code -> negeren!
+    entry.attachments = res.data.attachments ?? [];
+    console.log("entry.attachments na ophalen:", entry.attachments);
+
     openDialog("edit-maintenance");
   };
 
@@ -327,9 +374,13 @@
       return;
     }
 
+
     toast.success(t("items.toast.attachment_uploaded"));
 
-    entry.attachments = data.attachments;
+    entry.attachments = data.attachments ??[];
+    console.log(entry.attachments);
+    console.log("API response:", data);
+    console.log("entry.attachments:", entry.attachments);
   }
 
   async function deleteAttachment(attachmentId: string) {
@@ -339,13 +390,13 @@
       return;
     }
 
-    const { error, data } = await api.maintenance.deleteAttachment(entry.id ?? "", attachmentId);
+    const { error, data } = await api.maintenance.deleteAttachment( attachmentId);
     if (error) {
       toast.error(t("items.toast.failed_delete_attachment"));
       return;
     }
     toast.success(t("items.toast.attachment_deleted"));
-    entry.attachments = data.attachments;
+    entry.attachments = data.attachments ?? [];
   }
 
     const editState = reactive({
@@ -366,17 +417,18 @@
 
     function openAttachmentEditDialog(attachment: MaintenanceEntryAttachment) {
     editState.id = attachment.id;
-    editState.title = attachment.title ?? "";
+    editState.title = attachment.filename ?? "";
     editState.type = attachment.type ?? "";
     editState.primary = attachment.primary ?? false;
     openDialog("attachment-edit");
 
-    editState.obj = attachmentOpts.find(o => o.value === attachment.type) || attachmentOpts[0];
+    //editState.obj = attachmentOpts.find(o => o.value === attachment.type) || attachmentOpts[0];
+    console.log("Attachment type bij openen:", attachment.type);
   }
 
     async function updateAttachment() {
     editState.loading = true;
-    const { error, data } = await api.maintenance.updateAttachment(entry.id ?? "", editState.id, {
+    const { error, data } = await api.maintenance.updateAttachment(editState.id, {
       title: editState.title,
       type: editState.type,
       primary: editState.primary,
@@ -384,13 +436,12 @@
 
     if (error) {
       toast.error(t("items.toast.failed_update_attachment"));
+      editState.loading = false;
       return;
     }
-    entry.attachments = data.attachments;
+    entry.attachments = data.attachments ?? [];
 
     editState.loading = false;
-    closeDialog("attachment-edit");
-
     editState.id = "";
     editState.title = "";
     editState.type = "";
@@ -398,6 +449,9 @@
     toast.success(t("items.toast.attachment_updated"));
   }
 
-  defineExpose({ openCreateModal });
-
+  function attachmentURL(attachmentId: string) {
+    //return api.authURL(`/maintenance/${props.itemId}/attachments/${attachmentId}`);
+    return api.authURL(`/maintenance/attachments/${attachmentId}`); 
+  }
+  console.log("entry.attachments in template:", entry.attachments);
 </script>

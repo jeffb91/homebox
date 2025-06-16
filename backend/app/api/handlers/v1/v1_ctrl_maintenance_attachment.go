@@ -122,3 +122,25 @@ func (ctrl *V1Controller) handleMaintenanceAttachmentHandler(w http.ResponseWrit
 
 	return validate.NewRequestError(errors.New("unsupported method"), http.StatusMethodNotAllowed)
 }
+
+// GET /v1/maintenance/{id}/attachments
+func (ctrl *V1Controller) HandleMaintenanceAttachmentsList() errchain.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) error {
+		entryID, err := ctrl.routeUUID(r, "id")
+		if err != nil {
+			return err
+		}
+
+		ctx := services.NewContext(r.Context())
+
+		attachments, err := ctrl.repo.MaintAttachments.ListByEntry(ctx, entryID)
+		if err != nil {
+			log.Err(err).Msg("failed to list maintenance attachments")
+			return validate.NewRequestError(err, http.StatusInternalServerError)
+		}
+
+		return server.JSON(w, http.StatusOK, map[string]interface{}{
+			"attachments": attachments,
+		})
+	}
+}

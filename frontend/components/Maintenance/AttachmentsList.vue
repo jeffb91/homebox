@@ -7,7 +7,7 @@
     >
       <div class="flex w-0 flex-1 items-center">
         <MdiPaperclip class="size-5 shrink-0 text-gray-400" aria-hidden="true" />
-        <span class="ml-2 w-0 flex-1 truncate"> {{ attachment.title }}</span>
+        <span class="ml-2 w-0 flex-1 truncate"> {{ attachment.title || attachment.filename }}</span>
       </div>
       <div class="ml-4 flex shrink-0 gap-2">
         <TooltipProvider :delay-duration="0">
@@ -34,11 +34,12 @@
         </TooltipProvider>
       </div>
     </li>
+    <div v-if="!attachments.length" class="text-sm text-muted">Geen bijlagen gevonden.</div>
   </ul>
 </template>
 
 <script setup lang="ts">
-  import type { ItemAttachment } from "~~/lib/api/types/data-contracts";
+  import type { MaintenanceEntryAttachment } from "~~/lib/api/types/data-contracts";
   import MdiPaperclip from "~icons/mdi/paperclip";
   import MdiDownload from "~icons/mdi/download";
   import MdiOpenInNew from "~icons/mdi/open-in-new";
@@ -47,20 +48,24 @@
 
   const props = defineProps({
     attachments: {
-      type: Object as () => ItemAttachment[],
+      type: Object as () => MaintenanceEntryAttachment[],
       required: true,
     },
-    itemId: {
+    maintenanceEntryId: {
       type: String,
       required: true,
     },
   });
 
+  console.log("AttachmentsList attachments prop:", props.attachments);
+
   const api = useUserApi();
 
   function attachmentURL(attachmentId: string) {
-    return api.authURL(`/items/${props.itemId}/attachments/${attachmentId}`);
+    //return api.authURL(`/maintenance/${props.itemId}/attachments/${attachmentId}`);
+    return api.authURL(`/maintenance/${props.maintenanceEntryId}/attachments/${attachmentId}`); 
   }
+
 </script>
 
 <style scoped></style>

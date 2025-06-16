@@ -53,9 +53,9 @@ export class MaintenanceAPI extends BaseAPI {
   /**
    * Verwijder een bijlage van een maintenance entry
    */
-  deleteAttachment(id: string, attachmentId: string) {
+  deleteAttachment(attachmentId: string) {
     return this.http.delete<{ attachments: MaintenanceEntryAttachment[] }>({
-      url: route(`/maintenance/${id}/attachments/${attachmentId}`),
+      url: route(`/maintenance/attachments/${attachmentId}`),
     });
   }
 
@@ -63,7 +63,6 @@ export class MaintenanceAPI extends BaseAPI {
    * Update een bijlage van een maintenance entry
    */
   updateAttachment(
-    id: string,
     attachmentId: string,
     payload: { title?: string; type?: string; primary?: boolean }
   ) {
@@ -71,7 +70,7 @@ export class MaintenanceAPI extends BaseAPI {
       typeof payload,
       { attachments: MaintenanceEntryAttachment[] }
     >({
-      url: route(`/maintenance/${id}/attachments/${attachmentId}`),
+      url: route(`/maintenance/attachments/${attachmentId}`),
       body: payload,
     });
   }
@@ -97,8 +96,8 @@ export class MaintenanceAttachmentsAPI extends BaseAPI {
 
     return this.http.post<FormData, { attachments: MaintenanceEntryAttachment[] }>({
       url: route(`/maintenance/${id}/attachments`),
-      body: formData,
-      headers: { "Content-Type": "multipart/form-data" },
+      data: formData,
+      //headers: { "Content-Type": "multipart/form-data" },
     });
   }
 

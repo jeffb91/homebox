@@ -332,7 +332,7 @@
 
     toast.success(t("items.toast.attachment_uploaded"));
 
-    item.value.attachments = data.attachments;
+    item.value.attachments = data.attachments ?? [];
   }
 
   const confirm = useConfirm();

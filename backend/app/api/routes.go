@@ -147,6 +147,8 @@ func (a *app) mountRoutes(r *chi.Mux, chain *errchain.ErrChain, repos *repo.AllR
 		r.Get("/maintenance/attachments/{attachment_id}", chain.ToHandlerFunc(v1Ctrl.HandleMaintenanceAttachmentGet(), userMW...))
 		r.Delete("/maintenance/attachments/{attachment_id}", chain.ToHandlerFunc(v1Ctrl.HandleMaintenanceAttachmentDelete(), userMW...))
 		r.Put("/maintenance/attachments/{attachment_id}", chain.ToHandlerFunc(v1Ctrl.HandleMaintenanceAttachmentUpdate(), userMW...))
+		r.Get("/maintenance/{id}/attachments", chain.ToHandlerFunc(v1Ctrl.HandleMaintenanceAttachmentsList(), userMW...))
+		r.Post("/maintenance/{id}/attachments", chain.ToHandlerFunc(v1Ctrl.HandleMaintenanceAttachmentCreate(), userMW...))
 
 		// Notifiers
 		r.Get("/notifiers", chain.ToHandlerFunc(v1Ctrl.HandleGetUserNotifiers(), userMW...))
