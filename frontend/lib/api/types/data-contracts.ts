@@ -279,6 +279,7 @@ export interface MaintenanceEntry {
   id: string;
   name: string;
   scheduledDate: Date | string;
+  measurement: string;
 }
 
 export interface MaintenanceEntryCreate {
@@ -288,7 +289,7 @@ export interface MaintenanceEntryCreate {
   description: string;
   name: string;
   scheduledDate: Date | string;
-  measurement?: string;
+  measurement: string;
 }
 
 export interface MaintenanceEntryUpdate {
@@ -298,6 +299,8 @@ export interface MaintenanceEntryUpdate {
   description: string;
   name: string;
   scheduledDate: Date | string;
+  measurement: string;
+  title?: string;
 }
 
 export interface MaintenanceEntryWithDetails {
@@ -310,6 +313,8 @@ export interface MaintenanceEntryWithDetails {
   itemName: string;
   name: string;
   scheduledDate: Date | string;
+  measurement: string;
+  attachments: ItemAttachment[];
 }
 
 export interface NotifierCreate {
@@ -471,4 +476,20 @@ export interface Wrapped {
 export interface ValidateErrorResponse {
   error: string;
   fields: string;
+}
+
+export interface MaintenanceEntryAttachment {
+  id: string;
+  filename: string;
+  contentType?: string;
+  filepath: string;
+  uploadedAt: Date | string;
+  updatedAt: Date | string;
+  maintenanceEntryId: string;
+  title?: string;
+  type?: string;
+  primary?: boolean;
+  // Voeg hier extra velden toe als je die nodig hebt, zoals:
+  // title?: string;
+  // size?: number;
 }

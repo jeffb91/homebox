@@ -1,216 +1,403 @@
 <template>
   <Dialog dialog-id="edit-maintenance">
-    <DialogContent>
+    <DialogContent class="overflow-y-auto max-h-[80vh]">
       <DialogHeader>
         <DialogTitle>
-          {{ entry.id ? $t("maintenance.modal.edit_title") : $t("maintenance.modal.new_title") }}
+          {{ entry.id ? t("maintenance.modal.edit_title") : t("maintenance.modal.new_title") }}
         </DialogTitle>
       </DialogHeader>
 
-      <form class="flex flex-col gap-4" @submit.prevent="dispatchFormSubmit">
-        <FormTextField v-model="entry.name" :label="$t('maintenance.modal.entry_name')" autofocus />
-        <div class="grid grid-cols-2 gap-4">
-          <DatePicker v-model="entry.completedDate" :label="$t('maintenance.modal.completed_date')" />
-          <DatePicker v-model="entry.scheduledDate" :label="$t('maintenance.modal.scheduled_date')" />
-        </div>
-        <FormTextArea v-model="entry.description" :label="$t('maintenance.modal.notes')" />
-        <FormTextField v-model="entry.measurement" :label="$t('maintenance.modal.measurement')" />
-        <FormTextField v-model="entry.cost" :label="$t('maintenance.modal.cost')" />
+      <form class="flex flex-col gap-2" @submit.prevent="dispatchFormSubmit">
+        <!-- Onderhoud velden -->
+        <FormTextField v-model="entry.name" autofocus :label="t('maintenance.modal.entry_name')" />
+        <DatePicker v-model="entry.completedDate" :label="t('maintenance.modal.completed_date')" />
+        <DatePicker v-model="entry.scheduledDate" :label="t('maintenance.modal.scheduled_date')" />
+        <FormTextArea v-model="entry.description" :label="t('maintenance.modal.notes')" />
+        <FormTextField v-model="entry.measurement" :label="t('maintenance.modal.measurement')" />
+        <FormTextField v-model="entry.cost" :label="t('maintenance.modal.cost')" />
 
-        <DialogFooter class="mt-2">
+        <!-- Attachments sectie -->
+        <div class="mt-4">
+          <h3 class="text-lg font-medium leading-6">{{ t("items.attachments") }}</h3>
+          <p class="text-xs mb-2">{{ t("items.changes_persisted_immediately") }}</p>
+
+          <Card ref="attDropZone" class="shadow-inner p-4 mb-4">
+            <div v-if="attDropZoneActive" class="grid grid-cols-4 gap-4">
+              <DropZone @drop="dropPhoto"> {{ $t("items.photos") }} </DropZone>
+              <DropZone @drop="dropWarranty"> {{ $t("items.warranty") }} </DropZone>
+              <DropZone @drop="dropManual"> {{ $t("items.manuals") }} </DropZone>
+              <DropZone @drop="dropAttachment"> {{ $t("items.attachments") }} </DropZone>
+              <DropZone @drop="dropReceipt"> {{ $t("items.receipts") }} </DropZone>
+            </div>
+            <button
+              v-else
+              type="button"
+              class="grid h-24 w-full place-content-center border-2 border-dashed border-primary"
+              @click="clickUpload"
+            >
+              <input ref="refAttachmentInput" hidden type="file" @change="uploadImage" />
+              <p>{{ t("items.drag_and_drop") }}</p>
+            </button>
+          </Card>
+
+          <ul v-if="entry.attachments.length" class="divide-y rounded-md border">
+            <li
+              v-for="att in entry.attachments"
+              :key="att.id"
+              class="grid grid-cols-6 items-center py-2 px-3 text-sm"
+            >
+              <span class="col-span-4">{{ att.title }}</span>
+              <span>{{ t(`items.${att.type}`) }}</span>
+              <div class="flex gap-2 justify-end">
+                <Button size="icon" variant="destructive" @click="deleteAttachment(att.id)">
+                  <MdiDelete />
+                </Button>
+                <Button size="icon" @click="openAttachmentEditDialog(att)">
+                  <MdiPencil />
+                </Button>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <DialogFooter class="mt-4 flex justify-end">
           <Button type="submit">
             <MdiPost />
-            {{ entry.id ? $t("maintenance.modal.edit_action") : $t("maintenance.modal.new_action") }}
+            {{ entry.id ? t("maintenance.modal.edit_action") : t("maintenance.modal.new_action") }}
           </Button>
         </DialogFooter>
       </form>
+    </DialogContent>
+  </Dialog>
 
-      <!-- Attachments Section -->
-      <section class="mt-6 border-t pt-4">
-        <h3 class="text-lg font-medium">{{ $t("maintenance.attachments.title") }}</h3>
+  <!-- Bijlage bewerken dialoog -->
+  <Dialog dialog-id="attachment-edit">
+    <DialogContent>
+      <DialogHeader>
+        <DialogTitle>{{ t("items.edit.edit_attachment_dialog.title") }}</DialogTitle>
+      </DialogHeader>
 
-        <div ref="dropzone" class="mt-2 border-2 border-dashed rounded-lg p-6 text-center"
-             :class="{ 'border-primary bg-primary/10': isOverDropZone }"
-             @dragover.prevent @drop.prevent="onDrop">
-          {{ $t("maintenance.attachments.drag_and_drop") }}
-        </div>
+      <FormTextField
+        v-model="editState.title"
+        :label="t('items.edit.edit_attachment_dialog.attachment_title')"
+      />
 
-        <div class="mt-4 flex gap-2">
-          <input id="file-input" hidden type="file" multiple @change="onFileSelect" />
-          <label for="file-input">
-            <Button size="sm">{{ $t("maintenance.attachments.select_files") }}</Button>
-          </label>
-          <Button size="sm" :disabled="!files.length || uploading" @click="uploadFiles">
-            {{ $t("maintenance.attachments.upload_button") }}
-          </Button>
-        </div>
+      <Label>{{ t("items.edit.edit_attachment_dialog.attachment_type") }}</Label>
+      <Select v-model:model-value="editState.type">
+        <SelectTrigger>
+          <SelectValue :placeholder="t('items.edit.edit_attachment_dialog.select_type')" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem
+            v-for="opt in attachmentOpts"
+            :key="opt.value"
+            :value="opt.value"
+          >
+            {{ opt.text }}
+          </SelectItem>
+        </SelectContent>
+      </Select>
 
-        <ul v-if="attachments.length" class="mt-4 divide-y border rounded-md">
-          <li v-for="att in attachments" :key="att.id" class="flex items-center justify-between p-3">
-            <span class="truncate">{{ att.title || att.filename }}</span>
-            <div class="flex gap-2">
-              <Button size="icon" @click="downloadAttachment(att)">⬇️</Button>
-              <Button size="icon" variant="destructive" @click="deleteAttachment(att.id)">🗑️</Button>
-              <Button size="icon" @click="openEditAttachment(att)">✏️</Button>
-            </div>
-          </li>
-        </ul>
-      </section>
+      <div v-if="editState.type === AttachmentTypes.Photo" class="mt-3 flex items-center gap-2">
+        <Checkbox
+          id="primary"
+          v-model="editState.primary"
+          :label="t('items.edit.edit_attachment_dialog.primary_photo')"
+        />
+      </div>
 
-      <!-- Edit Attachment Dialog -->
-      <Dialog dialog-id="edit-attachment">
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{{ $t("maintenance.attachments.edit_title") }}</DialogTitle>
-          </DialogHeader>
-          <div class="flex flex-col gap-4">
-            <FormTextField v-model="editState.title" :label="$t('maintenance.attachments.field_title')" />
-          </div>
-          <DialogFooter>
-            <Button @click="updateAttachment" :disabled="editState.loading">{{ $t("global.update") }}</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DialogFooter>
+        <Button :loading="editState.loading" @click="updateAttachment">
+          {{ t("global.update") }}
+        </Button>
+      </DialogFooter>
     </DialogContent>
   </Dialog>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, watch } from "vue";
-import { useDialog } from "@/components/ui/dialog-provider";
-import { useDropZone } from "@/components/hooks/useDropZone";
-import { FormTextField } from "@/components/Form/TextField.vue";
-import DatePicker from "@/components/Form/DatePicker.vue";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import MdiPost from "~icons/mdi/post";
-import { useI18n } from "vue-i18n";
-import { toast } from "@/components/ui/sonner";
-import type { MaintenanceEntry, MaintenanceEntryAttachment } from "~~/lib/api/types/data-contracts";
-const api = useUserApi();
-const { t } = useI18n();
-const { openDialog, closeDialog } = useDialog();
+  import { useI18n } from "vue-i18n";
+  import { toast } from "@/components/ui/sonner";
+  import type {MaintenanceEntry,MaintenanceEntryAttachment, MaintenanceEntryWithDetails } from "~~/lib/api/types/data-contracts";
+  import MdiPost from "~icons/mdi/post";
+  import DatePicker from "~~/components/Form/DatePicker.vue";
+  import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+  import { useDialog } from "@/components/ui/dialog-provider";
 
-const entry = reactive<Partial<MaintenanceEntry>>({});
-const files = ref<File[]>([]);
-const attachments = ref<MaintenanceEntryAttachment[]>([]);
-const uploading = ref(false);
+  //imports voor bijlage
+  import { reactive, ref } from "vue";
+  import { Select, SelectTrigger, SelectContent, SelectItem } from "@/components/ui/select";
+  import { Checkbox } from "@/components/ui/checkbox";
+  import MdiDelete from "~icons/mdi/delete";
+  import MdiPencil from "~icons/mdi/pencil";
+  import { AttachmentTypes } from "~~/lib/api/types/non-generated";
+  //import { useDropZone } from "@/composables/useDropZone";
+  //import DropZone from "@/components/DropZone.vue";
+  //import { Card, Button, Label } from "@/components/ui";
+  //import { FormTextField, FormTextArea } from "@/components/Form";
+  //import { useConfirm } from "@/composables/useConfirm";
 
-const editState = reactive({ id: "", title: "", loading: false });
+  const { openDialog, closeDialog } = useDialog();
 
-const dropzone = ref<HTMLElement>();
-const { isOverDropZone } = useDropZone(dropzone);
+  const { t } = useI18n();
+  const api = useUserApi();
 
-function dispatchFormSubmit() {
-  entry.id ? editEntry() : createEntry();
-}
+  const emit = defineEmits(["changed"]);
 
-async function createEntry() {
-  if (!entry.itemId) return;
-  const { error } = await api.items.maintenance.create(entry.itemId, {
-    name: entry.name,
-    completedDate: entry.completedDate ?? "",
-    scheduledDate: entry.scheduledDate ?? "",
-    description: entry.description,
-    measurement: entry.measurement,
-    cost: parseFloat(entry.cost) ? entry.cost : "0",
+  const entry = reactive({
+    id: null as string | null,
+    name: "",
+    completedDate: null as Date | null,
+    scheduledDate: null as Date | null,
+    description: "",
+    cost: "",
+    measurement: "",
+    itemId: null as string | null,
+    attachments: [] as MaintenanceEntryAttachment[],
   });
 
-  if (error) return toast.error(t("maintenance.toast.failed_to_create"));
-
-  closeDialog("edit-maintenance");
-  emit("changed");
-}
-
-async function editEntry() {
-  if (!entry.id) return;
-  const { error } = await api.maintenance.update(entry.id, {
-    name: entry.name,
-    completedDate: entry.completedDate ?? "",
-    scheduledDate: entry.scheduledDate ?? "",
-    description: entry.description,
-    measurement: entry.measurement,
-    cost: entry.cost,
-  });
-
-  if (error) return toast.error(t("maintenance.toast.failed_to_update"));
-
-  closeDialog("edit-maintenance");
-  emit("changed");
-}
-
-watch(() => entry.id, async id => {
-  if (id) {
-    const res = await api.maintenance.getAttachments(id);
-    if (!res.error) attachments.value = res.data;
-  }
-});
-
-function onDrop(ev: DragEvent) {
-  const dt = ev.dataTransfer;
-  if (dt?.files) files.value = Array.from(dt.files);
-}
-
-function onFileSelect(ev: Event) {
-  const input = ev.target as HTMLInputElement;
-  if (input.files) files.value = Array.from(input.files);
-}
-
-async function uploadFiles() {
-  if (!entry.id || !files.value.length) return;
-  uploading.value = true;
-  for (const file of files.value) {
-    const form = new FormData();
-    form.append("file", file);
-    form.append("name", file.name);
-    const { error, data } = await api.maintenance.uploadAttachments(entry.id!, form);
-    if (error) {
-      toast.error(t("maintenance.attachments.upload_failed"));
-      break;
+  async function dispatchFormSubmit() {
+    if (entry.id) {
+      await editEntry();
+      return;
     }
-    attachments.value.push(data);
+
+    await createEntry();
   }
-  files.value = [];
-  uploading.value = false;
-}
 
-function downloadAttachment(att: MaintenanceEntryAttachment) {
-  api.maintenance.getAttachmentUrl(att.id)
-    .then(url => {
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = att.filename;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-    })
-    .catch(() => toast.error(t("maintenance.attachments.download_failed")));
-}
+   async function createEntry() {
+    if (!entry.itemId) {
+      return;
+    }
+    const { error } = await api.items.maintenance.create(entry.itemId, {
+      name: entry.name,
+      completedDate: entry.completedDate ?? "",
+      scheduledDate: entry.scheduledDate ?? "",
+      description: entry.description,
+      measurement: entry.measurement, 
+      cost: parseFloat(entry.cost) ? entry.cost : "0",
+    });
 
-async function deleteAttachment(id: string) {
-  if (!confirm(t("maintenance.attachments.delete_confirm"))) return;
-  const { error } = await api.maintenance.deleteAttachment(id);
-  if (!error) {
-    attachments.value = attachments.value.filter(a => a.id !== id);
-    toast.success(t("maintenance.attachments.delete_success"));
-  } else toast.error(t("maintenance.attachments.delete_failed"));
-}
+    if (error) {
+      toast.error(t("maintenance.toast.failed_to_create"));
+      return;
+    }
 
-function openEditAttachment(att: MaintenanceEntryAttachment) {
-  editState.id = att.id;
-  editState.title = att.title || "";
-  openDialog("edit-attachment");
-}
+    closeDialog("edit-maintenance");
+    emit("changed");
+  }
 
-async function updateAttachment() {
-  editState.loading = true;
-  const { error } = await api.maintenance.updateAttachment(editState.id, { title: editState.title });
-  editState.loading = false;
-  if (!error) {
-    const att = attachments.value.find(a => a.id === editState.id);
-    if (att) att.title = editState.title;
-    closeDialog("edit-attachment");
-    toast.success(t("maintenance.attachments.updated"));
-  } else toast.error(t("maintenance.attachments.update_failed"));
-}
+  async function editEntry() {
+    if (!entry.id) {
+      return;
+    }
+
+    const { error } = await api.maintenance.update(entry.id, {
+      name: entry.name,
+      completedDate: entry.completedDate ?? "null",
+      scheduledDate: entry.scheduledDate ?? "null",
+      description: entry.description,
+      measurement: entry.measurement,
+      cost: entry.cost,
+    });
+
+    if (error) {
+      toast.error(t("maintenance.toast.failed_to_update"));
+      return;
+    }
+
+    closeDialog("edit-maintenance");
+    emit("changed");
+  }
+
+  const openCreateModal = (itemId: string) => {
+    entry.id = null;
+    entry.name = "";
+    entry.completedDate = null;
+    entry.scheduledDate = null;
+    entry.description = "";
+    entry.cost = "";
+    entry.measurement = "";
+    entry.itemId = itemId;
+    openDialog("edit-maintenance");
+  };
+
+  const openUpdateModal = (maintenanceEntry: MaintenanceEntry | MaintenanceEntryWithDetails) => {
+    entry.id = maintenanceEntry.id;
+    entry.name = maintenanceEntry.name;
+    entry.completedDate = new Date(maintenanceEntry.completedDate);
+    entry.scheduledDate = new Date(maintenanceEntry.scheduledDate);
+    entry.description = maintenanceEntry.description;
+    entry.cost = maintenanceEntry.cost;
+    entry.measurement = maintenanceEntry.measurement;
+    entry.itemId = null;
+    openDialog("edit-maintenance");
+  };
+
+  const confirm = useConfirm();
+
+  async function deleteEntry(id: string) {
+    const result = await confirm.open(t("maintenance.modal.delete_confirmation"));
+    if (result.isCanceled) {
+      return;
+    }
+
+    const { error } = await api.maintenance.delete(id);
+
+    if (error) {
+      toast.error(t("maintenance.toast.failed_to_delete"));
+      return;
+    }
+    emit("changed");
+  }
+
+  async function complete(maintenanceEntry: MaintenanceEntry) {
+    const { error } = await api.maintenance.update(maintenanceEntry.id, {
+      name: maintenanceEntry.name,
+      completedDate: new Date(Date.now()),
+      scheduledDate: maintenanceEntry.scheduledDate ?? "null",
+      description: maintenanceEntry.description,
+      measurement: maintenanceEntry.measurement,
+      cost: maintenanceEntry.cost,
+    });
+    if (error) {
+      toast.error(t("maintenance.toast.failed_to_update"));
+    }
+    emit("changed");
+  }
+
+  function duplicate(maintenanceEntry: MaintenanceEntry | MaintenanceEntryWithDetails, itemId: string) {
+    entry.id = null;
+    entry.name = maintenanceEntry.name;
+    entry.completedDate = null;
+    entry.scheduledDate = null;
+    entry.description = maintenanceEntry.description;
+    entry.cost = maintenanceEntry.cost;
+    entry.measurement = "";
+    entry.itemId = itemId;
+    openDialog("edit-maintenance");
+  }
+
+  defineExpose({ openCreateModal, openUpdateModal, deleteEntry, complete, duplicate });
+
+  //bijlage gerelateerde code
+  const attDropZone = ref<HTMLDivElement>();
+  const { isOverDropZone: attDropZoneActive } = useDropZone(attDropZone);
+
+  const refAttachmentInput = ref<HTMLInputElement>();
+
+  const MEA = ref<MaintenanceEntryAttachment & { labelIds: string[] }>(null as any);
+
+  function clickUpload() {
+    if (!refAttachmentInput.value) {
+      return;
+    }
+    refAttachmentInput.value.click();
+  }
+
+  function uploadImage(e: Event) {
+    const files = (e.target as HTMLInputElement).files;
+    if (!files || !files.item(0)) {
+      return;
+    }
+
+    const first = files.item(0);
+    if (!first) {
+      return;
+    }
+
+    uploadAttachment([first], null);
+  }
+
+  const dropPhoto = (files: File[] | null) => uploadAttachment(files, AttachmentTypes.Photo);
+  const dropAttachment = (files: File[] | null) => uploadAttachment(files, AttachmentTypes.Attachment);
+  const dropWarranty = (files: File[] | null) => uploadAttachment(files, AttachmentTypes.Warranty);
+  const dropManual = (files: File[] | null) => uploadAttachment(files, AttachmentTypes.Manual);
+  const dropReceipt = (files: File[] | null) => uploadAttachment(files, AttachmentTypes.Receipt);
+
+  async function uploadAttachment(files: File[] | null, type: AttachmentTypes | null) {
+    if (!files || files.length === 0) {
+      return;
+    }
+
+    const { data, error } = await api.maintenance.attachments.addAttachment(entry.id ?? "", files[0], files[0].name, type);
+
+    if (error) {
+      toast.error(t("items.toast.failed_upload_attachment"));
+      return;
+    }
+
+    toast.success(t("items.toast.attachment_uploaded"));
+
+    entry.attachments = data.attachments;
+  }
+
+  async function deleteAttachment(attachmentId: string) {
+    const confirmed = await confirm.open(t("items.delete_attachment_confirm"));
+
+    if (confirmed.isCanceled) {
+      return;
+    }
+
+    const { error, data } = await api.maintenance.deleteAttachment(entry.id ?? "", attachmentId);
+    if (error) {
+      toast.error(t("items.toast.failed_delete_attachment"));
+      return;
+    }
+    toast.success(t("items.toast.attachment_deleted"));
+    entry.attachments = data.attachments;
+  }
+
+    const editState = reactive({
+    loading: false,
+
+    // Values
+    obj: {},
+    id: "",
+    title: "",
+    type: "",
+    primary: false,
+  });
+
+    const attachmentOpts = Object.entries(AttachmentTypes).map(([key, value]) => ({
+    text: key[0].toUpperCase() + key.slice(1),
+    value,
+  }));
+
+    function openAttachmentEditDialog(attachment: MaintenanceEntryAttachment) {
+    editState.id = attachment.id;
+    editState.title = attachment.title ?? "";
+    editState.type = attachment.type ?? "";
+    editState.primary = attachment.primary ?? false;
+    openDialog("attachment-edit");
+
+    editState.obj = attachmentOpts.find(o => o.value === attachment.type) || attachmentOpts[0];
+  }
+
+    async function updateAttachment() {
+    editState.loading = true;
+    const { error, data } = await api.maintenance.updateAttachment(entry.id ?? "", editState.id, {
+      title: editState.title,
+      type: editState.type,
+      primary: editState.primary,
+    });
+
+    if (error) {
+      toast.error(t("items.toast.failed_update_attachment"));
+      return;
+    }
+    entry.attachments = data.attachments;
+
+    editState.loading = false;
+    closeDialog("attachment-edit");
+
+    editState.id = "";
+    editState.title = "";
+    editState.type = "";
+
+    toast.success(t("items.toast.attachment_updated"));
+  }
+
+  defineExpose({ openCreateModal });
+
 </script>
