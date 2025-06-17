@@ -66,26 +66,26 @@ func (ctrl *V1Controller) HandleMaintenanceEntryDelete() errchain.HandlerFunc {
 	return adapters.CommandID("id", fn, http.StatusNoContent)
 }
 
-func (ctrl *V1Controller) HandleMaintenanceAttachmentUpload() errchain.HandlerFunc {
-	fn := func(r *http.Request, entryID uuid.UUID) (any, error) {
-		ctx := r.Context()
-		auth := services.NewContext(ctx)
-
-		file, _, err := r.FormFile("file")
-		if err != nil {
-			return nil, err
-		}
-		defer file.Close()
-
-		// Hier zou je logica toevoegen voor opslag, bijv. path genereren
-		path := "/uploads/.../yourfile.pdf"
-
-		return nil, ctrl.repo.MaintEntry.AddAttachment(auth, entryID, repo.MaintenanceEntryAttachmentCreate{
-			Filename:    "yourfile.pdf",    // real name
-			ContentType: "application/pdf", // real type
-			Path:        path,              // full storage path
-		})
-	}
-
-	return adapters.CommandID("id", fn, http.StatusOK)
-}
+//func (ctrl *V1Controller) HandleMaintenanceAttachmentUpload() errchain.HandlerFunc {
+//	fn := func(r *http.Request, entryID uuid.UUID) (any, error) {
+//		ctx := r.Context()
+//		auth := services.NewContext(ctx)
+//
+//		file, _, err := r.FormFile("file")
+//		if err != nil {
+//			return nil, err
+//		}
+//		defer file.Close()
+//
+//		// Hier zou je logica toevoegen voor opslag, bijv. path genereren
+//		path := "/uploads/.../yourfile.pdf"
+//
+//		return nil, ctrl.repo.MaintEntry.AddAttachment(auth, entryID, repo.MaintenanceEntryAttachmentCreate{
+//			Filename:    "yourfile.pdf",    // real name
+//			ContentType: "application/pdf", // real type
+//			Path:        path,              // full storage path
+//		})
+//	}
+//
+//	return adapters.CommandID("id", fn, http.StatusOK)
+//}

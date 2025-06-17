@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
-	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
 )
 
@@ -28,17 +27,12 @@ const (
 	FieldTitle = "title"
 	// FieldPath holds the string denoting the path field in the database.
 	FieldPath = "path"
-	// EdgeItem holds the string denoting the item edge name in mutations.
-	EdgeItem = "item"
+	// FieldRelatedType holds the string denoting the related_type field in the database.
+	FieldRelatedType = "related_type"
+	// FieldRelatedID holds the string denoting the related_id field in the database.
+	FieldRelatedID = "related_id"
 	// Table holds the table name of the attachment in the database.
 	Table = "attachments"
-	// ItemTable is the table that holds the item relation/edge.
-	ItemTable = "attachments"
-	// ItemInverseTable is the table name for the Item entity.
-	// It exists in this package in order to avoid circular dependency with the "item" package.
-	ItemInverseTable = "items"
-	// ItemColumn is the table column denoting the item relation/edge.
-	ItemColumn = "item_attachments"
 )
 
 // Columns holds all SQL columns for attachment fields.
@@ -50,6 +44,8 @@ var Columns = []string{
 	FieldPrimary,
 	FieldTitle,
 	FieldPath,
+	FieldRelatedType,
+	FieldRelatedID,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "attachments"
@@ -86,6 +82,8 @@ var (
 	DefaultTitle string
 	// DefaultPath holds the default value on creation for the "path" field.
 	DefaultPath string
+	// RelatedTypeValidator is a validator for the "related_type" field. It is called by the builders before save.
+	RelatedTypeValidator func(string) error
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
@@ -157,16 +155,12 @@ func ByPath(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldPath, opts...).ToFunc()
 }
 
-// ByItemField orders the results by item field.
-func ByItemField(field string, opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newItemStep(), sql.OrderByField(field, opts...))
-	}
+// ByRelatedType orders the results by the related_type field.
+func ByRelatedType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRelatedType, opts...).ToFunc()
 }
-func newItemStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(ItemInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, ItemTable, ItemColumn),
-	)
+
+// ByRelatedID orders the results by the related_id field.
+func ByRelatedID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRelatedID, opts...).ToFunc()
 }

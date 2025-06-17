@@ -395,6 +395,7 @@ func (e *ItemsRepository) QueryByGroup(ctx context.Context, gid uuid.UUID, q Ite
 					attachment.And(
 						attachment.Primary(true),
 						attachment.TypeEQ(attachment.TypePhoto),
+						attachment.RelatedTypeEQ("item"),
 					),
 				)),
 			)
@@ -405,6 +406,7 @@ func (e *ItemsRepository) QueryByGroup(ctx context.Context, gid uuid.UUID, q Ite
 				attachment.And(
 					attachment.Primary(true),
 					attachment.TypeEQ(attachment.TypePhoto),
+					attachment.RelatedTypeEQ("item"),
 				),
 			),
 			)
@@ -939,11 +941,13 @@ func (e *ItemsRepository) SetPrimaryPhotos(ctx context.Context, gid uuid.UUID) (
 		Where(
 			item.HasGroupWith(group.ID(gid)),
 			item.HasAttachmentsWith(
+				attachment.RelatedTypeEQ("item"),
 				attachment.TypeEQ(attachment.TypePhoto),
 				attachment.Not(
 					attachment.And(
 						attachment.Primary(true),
 						attachment.TypeEQ(attachment.TypePhoto),
+						attachment.RelatedTypeEQ("item"),
 					),
 				),
 			),
@@ -958,7 +962,8 @@ func (e *ItemsRepository) SetPrimaryPhotos(ctx context.Context, gid uuid.UUID) (
 		// Find the first photo attachment
 		a, err := e.db.Attachment.Query().
 			Where(
-				attachment.HasItemWith(item.ID(id)),
+				attachment.RelatedTypeEQ("item"),
+				attachment.RelatedID(id),
 				attachment.TypeEQ(attachment.TypePhoto),
 				attachment.Primary(false),
 			).

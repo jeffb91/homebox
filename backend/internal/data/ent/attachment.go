@@ -11,7 +11,6 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/attachment"
-	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/item"
 )
 
 // Attachment is the model entity for the Attachment schema.
@@ -31,31 +30,12 @@ type Attachment struct {
 	Title string `json:"title,omitempty"`
 	// Path holds the value of the "path" field.
 	Path string `json:"path,omitempty"`
-	// Edges holds the relations/edges for other nodes in the graph.
-	// The values are being populated by the AttachmentQuery when eager-loading is set.
-	Edges            AttachmentEdges `json:"edges"`
+	// RelatedType holds the value of the "related_type" field.
+	RelatedType string `json:"related_type,omitempty"`
+	// RelatedID holds the value of the "related_id" field.
+	RelatedID        uuid.UUID `json:"related_id,omitempty"`
 	item_attachments *uuid.UUID
 	selectValues     sql.SelectValues
-}
-
-// AttachmentEdges holds the relations/edges for other nodes in the graph.
-type AttachmentEdges struct {
-	// Item holds the value of the item edge.
-	Item *Item `json:"item,omitempty"`
-	// loadedTypes holds the information for reporting if a
-	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
-}
-
-// ItemOrErr returns the Item value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e AttachmentEdges) ItemOrErr() (*Item, error) {
-	if e.Item != nil {
-		return e.Item, nil
-	} else if e.loadedTypes[0] {
-		return nil, &NotFoundError{label: item.Label}
-	}
-	return nil, &NotLoadedError{edge: "item"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -65,11 +45,11 @@ func (*Attachment) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case attachment.FieldPrimary:
 			values[i] = new(sql.NullBool)
-		case attachment.FieldType, attachment.FieldTitle, attachment.FieldPath:
+		case attachment.FieldType, attachment.FieldTitle, attachment.FieldPath, attachment.FieldRelatedType:
 			values[i] = new(sql.NullString)
 		case attachment.FieldCreatedAt, attachment.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
-		case attachment.FieldID:
+		case attachment.FieldID, attachment.FieldRelatedID:
 			values[i] = new(uuid.UUID)
 		case attachment.ForeignKeys[0]: // item_attachments
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
@@ -130,6 +110,18 @@ func (a *Attachment) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				a.Path = value.String
 			}
+		case attachment.FieldRelatedType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field related_type", values[i])
+			} else if value.Valid {
+				a.RelatedType = value.String
+			}
+		case attachment.FieldRelatedID:
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field related_id", values[i])
+			} else if value != nil {
+				a.RelatedID = *value
+			}
 		case attachment.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
 				return fmt.Errorf("unexpected type %T for field item_attachments", values[i])
@@ -148,11 +140,6 @@ func (a *Attachment) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (a *Attachment) Value(name string) (ent.Value, error) {
 	return a.selectValues.Get(name)
-}
-
-// QueryItem queries the "item" edge of the Attachment entity.
-func (a *Attachment) QueryItem() *ItemQuery {
-	return NewAttachmentClient(a.config).QueryItem(a)
 }
 
 // Update returns a builder for updating this Attachment.
@@ -195,6 +182,12 @@ func (a *Attachment) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("path=")
 	builder.WriteString(a.Path)
+	builder.WriteString(", ")
+	builder.WriteString("related_type=")
+	builder.WriteString(a.RelatedType)
+	builder.WriteString(", ")
+	builder.WriteString("related_id=")
+	builder.WriteString(fmt.Sprintf("%v", a.RelatedID))
 	builder.WriteByte(')')
 	return builder.String()
 }

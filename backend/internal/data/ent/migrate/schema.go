@@ -17,7 +17,9 @@ var (
 		{Name: "primary", Type: field.TypeBool, Default: false},
 		{Name: "title", Type: field.TypeString, Default: ""},
 		{Name: "path", Type: field.TypeString, Default: ""},
-		{Name: "item_attachments", Type: field.TypeUUID},
+		{Name: "related_type", Type: field.TypeString},
+		{Name: "related_id", Type: field.TypeUUID},
+		{Name: "item_attachments", Type: field.TypeUUID, Nullable: true},
 	}
 	// AttachmentsTable holds the schema information for the "attachments" table.
 	AttachmentsTable = &schema.Table{
@@ -27,7 +29,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "attachments_items_attachments",
-				Columns:    []*schema.Column{AttachmentsColumns[7]},
+				Columns:    []*schema.Column{AttachmentsColumns[9]},
 				RefColumns: []*schema.Column{ItemsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},

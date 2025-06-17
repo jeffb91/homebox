@@ -64,9 +64,9 @@ type AttachmentMutation struct {
 	primary       *bool
 	title         *string
 	_path         *string
+	related_type  *string
+	related_id    *uuid.UUID
 	clearedFields map[string]struct{}
-	item          *uuid.UUID
-	cleareditem   bool
 	done          bool
 	oldValue      func(context.Context) (*Attachment, error)
 	predicates    []predicate.Attachment
@@ -392,43 +392,76 @@ func (m *AttachmentMutation) ResetPath() {
 	m._path = nil
 }
 
-// SetItemID sets the "item" edge to the Item entity by id.
-func (m *AttachmentMutation) SetItemID(id uuid.UUID) {
-	m.item = &id
+// SetRelatedType sets the "related_type" field.
+func (m *AttachmentMutation) SetRelatedType(s string) {
+	m.related_type = &s
 }
 
-// ClearItem clears the "item" edge to the Item entity.
-func (m *AttachmentMutation) ClearItem() {
-	m.cleareditem = true
-}
-
-// ItemCleared reports if the "item" edge to the Item entity was cleared.
-func (m *AttachmentMutation) ItemCleared() bool {
-	return m.cleareditem
-}
-
-// ItemID returns the "item" edge ID in the mutation.
-func (m *AttachmentMutation) ItemID() (id uuid.UUID, exists bool) {
-	if m.item != nil {
-		return *m.item, true
+// RelatedType returns the value of the "related_type" field in the mutation.
+func (m *AttachmentMutation) RelatedType() (r string, exists bool) {
+	v := m.related_type
+	if v == nil {
+		return
 	}
-	return
+	return *v, true
 }
 
-// ItemIDs returns the "item" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// ItemID instead. It exists only for internal usage by the builders.
-func (m *AttachmentMutation) ItemIDs() (ids []uuid.UUID) {
-	if id := m.item; id != nil {
-		ids = append(ids, *id)
+// OldRelatedType returns the old "related_type" field's value of the Attachment entity.
+// If the Attachment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AttachmentMutation) OldRelatedType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRelatedType is only allowed on UpdateOne operations")
 	}
-	return
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRelatedType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRelatedType: %w", err)
+	}
+	return oldValue.RelatedType, nil
 }
 
-// ResetItem resets all changes to the "item" edge.
-func (m *AttachmentMutation) ResetItem() {
-	m.item = nil
-	m.cleareditem = false
+// ResetRelatedType resets all changes to the "related_type" field.
+func (m *AttachmentMutation) ResetRelatedType() {
+	m.related_type = nil
+}
+
+// SetRelatedID sets the "related_id" field.
+func (m *AttachmentMutation) SetRelatedID(u uuid.UUID) {
+	m.related_id = &u
+}
+
+// RelatedID returns the value of the "related_id" field in the mutation.
+func (m *AttachmentMutation) RelatedID() (r uuid.UUID, exists bool) {
+	v := m.related_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRelatedID returns the old "related_id" field's value of the Attachment entity.
+// If the Attachment object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AttachmentMutation) OldRelatedID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRelatedID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRelatedID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRelatedID: %w", err)
+	}
+	return oldValue.RelatedID, nil
+}
+
+// ResetRelatedID resets all changes to the "related_id" field.
+func (m *AttachmentMutation) ResetRelatedID() {
+	m.related_id = nil
 }
 
 // Where appends a list predicates to the AttachmentMutation builder.
@@ -465,7 +498,7 @@ func (m *AttachmentMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AttachmentMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 8)
 	if m.created_at != nil {
 		fields = append(fields, attachment.FieldCreatedAt)
 	}
@@ -483,6 +516,12 @@ func (m *AttachmentMutation) Fields() []string {
 	}
 	if m._path != nil {
 		fields = append(fields, attachment.FieldPath)
+	}
+	if m.related_type != nil {
+		fields = append(fields, attachment.FieldRelatedType)
+	}
+	if m.related_id != nil {
+		fields = append(fields, attachment.FieldRelatedID)
 	}
 	return fields
 }
@@ -504,6 +543,10 @@ func (m *AttachmentMutation) Field(name string) (ent.Value, bool) {
 		return m.Title()
 	case attachment.FieldPath:
 		return m.Path()
+	case attachment.FieldRelatedType:
+		return m.RelatedType()
+	case attachment.FieldRelatedID:
+		return m.RelatedID()
 	}
 	return nil, false
 }
@@ -525,6 +568,10 @@ func (m *AttachmentMutation) OldField(ctx context.Context, name string) (ent.Val
 		return m.OldTitle(ctx)
 	case attachment.FieldPath:
 		return m.OldPath(ctx)
+	case attachment.FieldRelatedType:
+		return m.OldRelatedType(ctx)
+	case attachment.FieldRelatedID:
+		return m.OldRelatedID(ctx)
 	}
 	return nil, fmt.Errorf("unknown Attachment field %s", name)
 }
@@ -575,6 +622,20 @@ func (m *AttachmentMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetPath(v)
+		return nil
+	case attachment.FieldRelatedType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRelatedType(v)
+		return nil
+	case attachment.FieldRelatedID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRelatedID(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Attachment field %s", name)
@@ -643,34 +704,31 @@ func (m *AttachmentMutation) ResetField(name string) error {
 	case attachment.FieldPath:
 		m.ResetPath()
 		return nil
+	case attachment.FieldRelatedType:
+		m.ResetRelatedType()
+		return nil
+	case attachment.FieldRelatedID:
+		m.ResetRelatedID()
+		return nil
 	}
 	return fmt.Errorf("unknown Attachment field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *AttachmentMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
-	if m.item != nil {
-		edges = append(edges, attachment.EdgeItem)
-	}
+	edges := make([]string, 0, 0)
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
 func (m *AttachmentMutation) AddedIDs(name string) []ent.Value {
-	switch name {
-	case attachment.EdgeItem:
-		if id := m.item; id != nil {
-			return []ent.Value{*id}
-		}
-	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *AttachmentMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 0)
 	return edges
 }
 
@@ -682,42 +740,25 @@ func (m *AttachmentMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *AttachmentMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
-	if m.cleareditem {
-		edges = append(edges, attachment.EdgeItem)
-	}
+	edges := make([]string, 0, 0)
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
 func (m *AttachmentMutation) EdgeCleared(name string) bool {
-	switch name {
-	case attachment.EdgeItem:
-		return m.cleareditem
-	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
 func (m *AttachmentMutation) ClearEdge(name string) error {
-	switch name {
-	case attachment.EdgeItem:
-		m.ClearItem()
-		return nil
-	}
 	return fmt.Errorf("unknown Attachment unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
 func (m *AttachmentMutation) ResetEdge(name string) error {
-	switch name {
-	case attachment.EdgeItem:
-		m.ResetItem()
-		return nil
-	}
 	return fmt.Errorf("unknown Attachment edge %s", name)
 }
 

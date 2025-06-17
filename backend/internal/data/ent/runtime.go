@@ -52,6 +52,10 @@ func init() {
 	attachmentDescPath := attachmentFields[3].Descriptor()
 	// attachment.DefaultPath holds the default value on creation for the path field.
 	attachment.DefaultPath = attachmentDescPath.Default.(string)
+	// attachmentDescRelatedType is the schema descriptor for related_type field.
+	attachmentDescRelatedType := attachmentFields[4].Descriptor()
+	// attachment.RelatedTypeValidator is a validator for the "related_type" field. It is called by the builders before save.
+	attachment.RelatedTypeValidator = attachmentDescRelatedType.Validators[0].(func(string) error)
 	// attachmentDescID is the schema descriptor for id field.
 	attachmentDescID := attachmentMixinFields0[0].Descriptor()
 	// attachment.DefaultID holds the default value on creation for the id field.

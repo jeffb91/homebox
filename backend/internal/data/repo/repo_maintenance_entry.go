@@ -11,7 +11,6 @@ import (
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/group"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/item"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/maintenanceentry"
-	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/maintenanceentryattachment"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/types"
 )
 
@@ -186,30 +185,33 @@ type MaintenanceEntryAttachmentCreate struct {
 	Path        string
 }
 
-func (r *MaintenanceEntryRepository) AddAttachment(ctx context.Context, entryID uuid.UUID, input MaintenanceEntryAttachmentCreate) error {
-	_, err := r.db.MaintenanceEntryAttachment.Create().
-		SetEntryID(entryID).
-		SetFilename(input.Filename).
-		SetContentType(input.ContentType).
-		SetFilepath(input.Path).
-		Save(ctx)
+//func (r *MaintenanceEntryRepository) AddAttachment(ctx context.Context, entryID uuid.UUID, input MaintenanceEntryAttachmentCreate) error {
+//	_, err := r.db.MaintenanceEntryAttachment.Create().
+//		SetRelatedType("maintenance_entry").
+//		SetRelatedID(entryID).
+//		SetTitle(input.Filename).
+//		SetPath(input.Path).
+//		Save(ctx)
+//
+//	return err
+//}
 
-	return err
-}
+//func (r *MaintenanceEntryRepository) GetAttachments(ctx context.Context, entryID uuid.UUID) ([]*ent.MaintenanceEntryAttachment, error) {
+//	return r.db.MaintenanceEntryAttachment.
+//		Query().
+//		Where(
+//			attachment.RelatedTypeEQ("maintenance_entry"),
+//        	attachment.RelatedID(entryID),
+//		).
+//		All(ctx)
+//}
 
-func (r *MaintenanceEntryRepository) GetAttachments(ctx context.Context, entryID uuid.UUID) ([]*ent.MaintenanceEntryAttachment, error) {
-	return r.db.MaintenanceEntryAttachment.
-		Query().
-		Where(maintenanceentryattachment.MaintenanceEntryID(entryID)).
-		All(ctx)
-}
-
-func (r *MaintenanceEntryRepository) GetAttachment(ctx context.Context, attachmentID uuid.UUID) (*ent.MaintenanceEntryAttachment, error) {
-	return r.db.MaintenanceEntryAttachment.Get(ctx, attachmentID)
+func (r *MaintenanceEntryRepository) GetAttachment(ctx context.Context, attachmentID uuid.UUID) (*ent.Attachment, error) {
+	return r.db.Attachment.Get(ctx, attachmentID)
 }
 
 func (r *MaintenanceEntryRepository) DeleteAttachment(ctx context.Context, entryID, attachmentID uuid.UUID) error {
-	return r.db.MaintenanceEntryAttachment.
+	return r.db.Attachment.
 		DeleteOneID(attachmentID).
 		Exec(ctx)
 }

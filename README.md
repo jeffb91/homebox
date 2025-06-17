@@ -62,3 +62,7 @@ We want to make sure that Homebox is available in as many languages as possible.
 
 - Original project by [@hay-kot](https://github.com/hay-kot)
 - Logo by [@lakotelman](https://github.com/lakotelman)
+
+
+Schema opnieuw bouwen:
+go run -mod=mod entgo.io/ent/cmd/ent generate ./internal/data/ent/schema

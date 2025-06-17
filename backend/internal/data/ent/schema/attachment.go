@@ -2,8 +2,8 @@ package schema
 
 import (
 	"entgo.io/ent"
-	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/schema/mixins"
 )
 
@@ -25,15 +25,22 @@ func (Attachment) Fields() []ent.Field {
 		field.Bool("primary").Default(false),
 		field.String("title").Default(""),
 		field.String("path").Default(""),
+		field.String("related_type").NotEmpty(),
+		field.UUID("related_id", uuid.UUID{}),
 	}
 }
 
 // Edges of the Attachment.
+//func (Attachment) Edges() []ent.Edge {
+//	return []ent.Edge{
+//		edge.From("item", Item.Type).
+//			Ref("attachments").
+//			Required().
+//			Unique(),
+//	}
+//}
+
+// Edges of the Attachment.
 func (Attachment) Edges() []ent.Edge {
-	return []ent.Edge{
-		edge.From("item", Item.Type).
-			Ref("attachments").
-			Required().
-			Unique(),
-	}
+	return nil // Geen edges meer, alles via related_type/related_id
 }
