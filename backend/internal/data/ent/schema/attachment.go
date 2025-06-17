@@ -2,7 +2,6 @@ package schema
 
 import (
 	"entgo.io/ent"
-	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/schema/mixins"
 )
@@ -25,15 +24,12 @@ func (Attachment) Fields() []ent.Field {
 		field.Bool("primary").Default(false),
 		field.String("title").Default(""),
 		field.String("path").Default(""),
+		field.String("related_type").NotEmpty(),
+		field.Int("related_id").Positive(),
 	}
 }
 
 // Edges of the Attachment.
 func (Attachment) Edges() []ent.Edge {
-	return []ent.Edge{
-		edge.From("item", Item.Type).
-			Ref("attachments").
-			Required().
-			Unique(),
-	}
+	return nil
 }
