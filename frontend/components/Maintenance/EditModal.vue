@@ -215,6 +215,7 @@
       scheduledDate: entry.scheduledDate ?? "",
       description: entry.description,
       measurement: entry.measurement, 
+      measurement: entry.measurement, 
       cost: parseFloat(entry.cost) ? entry.cost : "0",
     });
 
@@ -238,6 +239,7 @@
       scheduledDate: entry.scheduledDate ?? "null",
       description: entry.description,
       measurement: entry.measurement,
+      measurement: entry.measurement,
       cost: entry.cost,
     });
 
@@ -258,6 +260,7 @@
     entry.description = "";
     entry.cost = "";
     entry.measurement = "";
+    entry.measurement = "";
     entry.itemId = itemId;
     openDialog("edit-maintenance");
   };
@@ -269,6 +272,7 @@
     entry.scheduledDate = new Date(maintenanceEntry.scheduledDate);
     entry.description = maintenanceEntry.description;
     entry.cost = maintenanceEntry.cost;
+    entry.measurement = maintenanceEntry.measurement;
     entry.measurement = maintenanceEntry.measurement;
     entry.itemId = null;
 
@@ -304,6 +308,7 @@
       completedDate: new Date(Date.now()),
       scheduledDate: maintenanceEntry.scheduledDate ?? "null",
       description: maintenanceEntry.description,
+      measurement: maintenanceEntry.measurement,
       measurement: maintenanceEntry.measurement,
       cost: maintenanceEntry.cost,
     });
