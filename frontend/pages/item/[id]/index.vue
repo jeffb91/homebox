@@ -25,6 +25,9 @@
   import { Label } from "@/components/ui/label";
   import { Switch } from "@/components/ui/switch";
   import { Card } from "@/components/ui/card";
+  import { format } from 'date-fns'
+
+
 
   const { t } = useI18n();
 
@@ -66,6 +69,21 @@
 
     lastRoute.value = route.fullPath;
   });
+
+  const props = defineProps({
+    item: {
+      type: Object,
+      required: true
+    }
+  })
+
+  function formatDate(date: string | Date) {
+    try {
+      return format(new Date(date), 'yyyy-MM-dd')
+    } catch {
+      return '-'
+    }
+  }
 
   async function adjustQuantity(amount: number) {
     if (!item.value) {
@@ -588,6 +606,9 @@
                   {{ $t("items.updated_at") }}
                   <DateTime :date="item?.updatedAt" />
                 </div>
+              </div>
+              <div v-if="item.archivedAt" class="text-xs italic text-muted-foreground">
+                📦 Gearchiveerd op: <DateTime :date="item.archivedAt" />
               </div>
             </div>
             <div class="ml-auto mt-2 flex flex-wrap items-center justify-between gap-3">

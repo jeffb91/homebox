@@ -68,6 +68,8 @@ type Item struct {
 	SoldPrice float64 `json:"sold_price,omitempty"`
 	// SoldNotes holds the value of the "sold_notes" field.
 	SoldNotes string `json:"sold_notes,omitempty"`
+	// ArchivedAt holds the value of the "archived_at" field.
+	ArchivedAt *time.Time `json:"archived_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ItemQuery when eager-loading is set.
 	Edges          ItemEdges `json:"edges"`
@@ -191,7 +193,7 @@ func (*Item) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case item.FieldName, item.FieldDescription, item.FieldImportRef, item.FieldNotes, item.FieldSerialNumber, item.FieldModelNumber, item.FieldManufacturer, item.FieldWarrantyDetails, item.FieldPurchaseFrom, item.FieldSoldTo, item.FieldSoldNotes:
 			values[i] = new(sql.NullString)
-		case item.FieldCreatedAt, item.FieldUpdatedAt, item.FieldWarrantyExpires, item.FieldPurchaseTime, item.FieldSoldTime:
+		case item.FieldCreatedAt, item.FieldUpdatedAt, item.FieldWarrantyExpires, item.FieldPurchaseTime, item.FieldSoldTime, item.FieldArchivedAt:
 			values[i] = new(sql.NullTime)
 		case item.FieldID:
 			values[i] = new(uuid.UUID)
@@ -366,6 +368,13 @@ func (i *Item) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				i.SoldNotes = value.String
 			}
+		case item.FieldArchivedAt:
+			if value, ok := values[j].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field archived_at", values[j])
+			} else if value.Valid {
+				i.ArchivedAt = new(time.Time)
+				*i.ArchivedAt = value.Time
+			}
 		case item.ForeignKeys[0]:
 			if value, ok := values[j].(*sql.NullScanner); !ok {
 				return fmt.Errorf("unexpected type %T for field group_items", values[j])
@@ -534,6 +543,11 @@ func (i *Item) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("sold_notes=")
 	builder.WriteString(i.SoldNotes)
+	builder.WriteString(", ")
+	if v := i.ArchivedAt; v != nil {
+		builder.WriteString("archived_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
 	builder.WriteByte(')')
 	return builder.String()
 }

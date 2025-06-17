@@ -455,6 +455,26 @@ func (iu *ItemUpdate) ClearSoldNotes() *ItemUpdate {
 	return iu
 }
 
+// SetArchivedAt sets the "archived_at" field.
+func (iu *ItemUpdate) SetArchivedAt(t time.Time) *ItemUpdate {
+	iu.mutation.SetArchivedAt(t)
+	return iu
+}
+
+// SetNillableArchivedAt sets the "archived_at" field if the given value is not nil.
+func (iu *ItemUpdate) SetNillableArchivedAt(t *time.Time) *ItemUpdate {
+	if t != nil {
+		iu.SetArchivedAt(*t)
+	}
+	return iu
+}
+
+// ClearArchivedAt clears the value of the "archived_at" field.
+func (iu *ItemUpdate) ClearArchivedAt() *ItemUpdate {
+	iu.mutation.ClearArchivedAt()
+	return iu
+}
+
 // SetGroupID sets the "group" edge to the Group entity by ID.
 func (iu *ItemUpdate) SetGroupID(id uuid.UUID) *ItemUpdate {
 	iu.mutation.SetGroupID(id)
@@ -927,6 +947,12 @@ func (iu *ItemUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if iu.mutation.SoldNotesCleared() {
 		_spec.ClearField(item.FieldSoldNotes, field.TypeString)
+	}
+	if value, ok := iu.mutation.ArchivedAt(); ok {
+		_spec.SetField(item.FieldArchivedAt, field.TypeTime, value)
+	}
+	if iu.mutation.ArchivedAtCleared() {
+		_spec.ClearField(item.FieldArchivedAt, field.TypeTime)
 	}
 	if iu.mutation.GroupCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -1680,6 +1706,26 @@ func (iuo *ItemUpdateOne) ClearSoldNotes() *ItemUpdateOne {
 	return iuo
 }
 
+// SetArchivedAt sets the "archived_at" field.
+func (iuo *ItemUpdateOne) SetArchivedAt(t time.Time) *ItemUpdateOne {
+	iuo.mutation.SetArchivedAt(t)
+	return iuo
+}
+
+// SetNillableArchivedAt sets the "archived_at" field if the given value is not nil.
+func (iuo *ItemUpdateOne) SetNillableArchivedAt(t *time.Time) *ItemUpdateOne {
+	if t != nil {
+		iuo.SetArchivedAt(*t)
+	}
+	return iuo
+}
+
+// ClearArchivedAt clears the value of the "archived_at" field.
+func (iuo *ItemUpdateOne) ClearArchivedAt() *ItemUpdateOne {
+	iuo.mutation.ClearArchivedAt()
+	return iuo
+}
+
 // SetGroupID sets the "group" edge to the Group entity by ID.
 func (iuo *ItemUpdateOne) SetGroupID(id uuid.UUID) *ItemUpdateOne {
 	iuo.mutation.SetGroupID(id)
@@ -2182,6 +2228,12 @@ func (iuo *ItemUpdateOne) sqlSave(ctx context.Context) (_node *Item, err error) 
 	}
 	if iuo.mutation.SoldNotesCleared() {
 		_spec.ClearField(item.FieldSoldNotes, field.TypeString)
+	}
+	if value, ok := iuo.mutation.ArchivedAt(); ok {
+		_spec.SetField(item.FieldArchivedAt, field.TypeTime, value)
+	}
+	if iuo.mutation.ArchivedAtCleared() {
+		_spec.ClearField(item.FieldArchivedAt, field.TypeTime)
 	}
 	if iuo.mutation.GroupCleared() {
 		edge := &sqlgraph.EdgeSpec{

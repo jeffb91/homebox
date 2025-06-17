@@ -3421,6 +3421,7 @@ type ItemMutation struct {
 	sold_price                 *float64
 	addsold_price              *float64
 	sold_notes                 *string
+	archived_at                *time.Time
 	clearedFields              map[string]struct{}
 	group                      *uuid.UUID
 	clearedgroup               bool
@@ -4665,6 +4666,55 @@ func (m *ItemMutation) ResetSoldNotes() {
 	delete(m.clearedFields, item.FieldSoldNotes)
 }
 
+// SetArchivedAt sets the "archived_at" field.
+func (m *ItemMutation) SetArchivedAt(t time.Time) {
+	m.archived_at = &t
+}
+
+// ArchivedAt returns the value of the "archived_at" field in the mutation.
+func (m *ItemMutation) ArchivedAt() (r time.Time, exists bool) {
+	v := m.archived_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldArchivedAt returns the old "archived_at" field's value of the Item entity.
+// If the Item object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ItemMutation) OldArchivedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldArchivedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldArchivedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldArchivedAt: %w", err)
+	}
+	return oldValue.ArchivedAt, nil
+}
+
+// ClearArchivedAt clears the value of the "archived_at" field.
+func (m *ItemMutation) ClearArchivedAt() {
+	m.archived_at = nil
+	m.clearedFields[item.FieldArchivedAt] = struct{}{}
+}
+
+// ArchivedAtCleared returns if the "archived_at" field was cleared in this mutation.
+func (m *ItemMutation) ArchivedAtCleared() bool {
+	_, ok := m.clearedFields[item.FieldArchivedAt]
+	return ok
+}
+
+// ResetArchivedAt resets all changes to the "archived_at" field.
+func (m *ItemMutation) ResetArchivedAt() {
+	m.archived_at = nil
+	delete(m.clearedFields, item.FieldArchivedAt)
+}
+
 // SetGroupID sets the "group" edge to the Group entity by id.
 func (m *ItemMutation) SetGroupID(id uuid.UUID) {
 	m.group = &id
@@ -5086,7 +5136,7 @@ func (m *ItemMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ItemMutation) Fields() []string {
-	fields := make([]string, 0, 24)
+	fields := make([]string, 0, 25)
 	if m.created_at != nil {
 		fields = append(fields, item.FieldCreatedAt)
 	}
@@ -5159,6 +5209,9 @@ func (m *ItemMutation) Fields() []string {
 	if m.sold_notes != nil {
 		fields = append(fields, item.FieldSoldNotes)
 	}
+	if m.archived_at != nil {
+		fields = append(fields, item.FieldArchivedAt)
+	}
 	return fields
 }
 
@@ -5215,6 +5268,8 @@ func (m *ItemMutation) Field(name string) (ent.Value, bool) {
 		return m.SoldPrice()
 	case item.FieldSoldNotes:
 		return m.SoldNotes()
+	case item.FieldArchivedAt:
+		return m.ArchivedAt()
 	}
 	return nil, false
 }
@@ -5272,6 +5327,8 @@ func (m *ItemMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldSoldPrice(ctx)
 	case item.FieldSoldNotes:
 		return m.OldSoldNotes(ctx)
+	case item.FieldArchivedAt:
+		return m.OldArchivedAt(ctx)
 	}
 	return nil, fmt.Errorf("unknown Item field %s", name)
 }
@@ -5449,6 +5506,13 @@ func (m *ItemMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetSoldNotes(v)
 		return nil
+	case item.FieldArchivedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetArchivedAt(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Item field %s", name)
 }
@@ -5569,6 +5633,9 @@ func (m *ItemMutation) ClearedFields() []string {
 	if m.FieldCleared(item.FieldSoldNotes) {
 		fields = append(fields, item.FieldSoldNotes)
 	}
+	if m.FieldCleared(item.FieldArchivedAt) {
+		fields = append(fields, item.FieldArchivedAt)
+	}
 	return fields
 }
 
@@ -5621,6 +5688,9 @@ func (m *ItemMutation) ClearField(name string) error {
 		return nil
 	case item.FieldSoldNotes:
 		m.ClearSoldNotes()
+		return nil
+	case item.FieldArchivedAt:
+		m.ClearArchivedAt()
 		return nil
 	}
 	return fmt.Errorf("unknown Item nullable field %s", name)
@@ -5701,6 +5771,9 @@ func (m *ItemMutation) ResetField(name string) error {
 		return nil
 	case item.FieldSoldNotes:
 		m.ResetSoldNotes()
+		return nil
+	case item.FieldArchivedAt:
+		m.ResetArchivedAt()
 		return nil
 	}
 	return fmt.Errorf("unknown Item field %s", name)

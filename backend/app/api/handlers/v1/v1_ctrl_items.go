@@ -222,6 +222,19 @@ func (ctrl *V1Controller) HandleItemUpdate() errchain.HandlerFunc {
 		auth := services.NewContext(r.Context())
 
 		body.ID = ID
+
+		// Voeg onderstaande logica toe:
+		if body.Archived {
+			// Als item wordt gearchiveerd en er nog geen archived_at is meegegeven
+			if body.ArchivedAt == nil {
+				now := time.Now()
+				body.ArchivedAt = &now
+			}
+		} else {
+			// Als je het item de-archiveert, verwijder de archived_at datum
+			body.ArchivedAt = nil
+		}
+
 		return ctrl.repo.Items.UpdateByGroup(auth, auth.GID, body)
 	}
 

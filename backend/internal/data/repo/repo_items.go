@@ -70,15 +70,16 @@ type (
 	}
 
 	ItemUpdate struct {
-		ParentID                uuid.UUID `json:"parentId"                extensions:"x-nullable,x-omitempty"`
-		ID                      uuid.UUID `json:"id"`
-		AssetID                 AssetID   `json:"assetId"                 swaggertype:"string"`
-		Name                    string    `json:"name"                    validate:"required,min=1,max=255"`
-		Description             string    `json:"description"             validate:"max=1000"`
-		Quantity                int       `json:"quantity"`
-		Insured                 bool      `json:"insured"`
-		Archived                bool      `json:"archived"`
-		SyncChildItemsLocations bool      `json:"syncChildItemsLocations"`
+		ParentID                uuid.UUID  `json:"parentId"                extensions:"x-nullable,x-omitempty"`
+		ID                      uuid.UUID  `json:"id"`
+		AssetID                 AssetID    `json:"assetId"                 swaggertype:"string"`
+		Name                    string     `json:"name"                    validate:"required,min=1,max=255"`
+		Description             string     `json:"description"             validate:"max=1000"`
+		Quantity                int        `json:"quantity"`
+		Insured                 bool       `json:"insured"`
+		Archived                bool       `json:"archived"`
+		ArchivedAt              *time.Time `json:"archivedAt,omitempty"`
+		SyncChildItemsLocations bool       `json:"syncChildItemsLocations"`
 
 		// Edges
 		LocationID uuid.UUID   `json:"locationId"`
@@ -117,16 +118,17 @@ type (
 	}
 
 	ItemSummary struct {
-		ImportRef   string    `json:"-"`
-		ID          uuid.UUID `json:"id"`
-		AssetID     AssetID   `json:"assetId,string"`
-		Name        string    `json:"name"`
-		Description string    `json:"description"`
-		Quantity    int       `json:"quantity"`
-		Insured     bool      `json:"insured"`
-		Archived    bool      `json:"archived"`
-		CreatedAt   time.Time `json:"createdAt"`
-		UpdatedAt   time.Time `json:"updatedAt"`
+		ImportRef   string     `json:"-"`
+		ID          uuid.UUID  `json:"id"`
+		AssetID     AssetID    `json:"assetId,string"`
+		Name        string     `json:"name"`
+		Description string     `json:"description"`
+		Quantity    int        `json:"quantity"`
+		Insured     bool       `json:"insured"`
+		Archived    bool       `json:"archived"`
+		CreatedAt   time.Time  `json:"createdAt"`
+		UpdatedAt   time.Time  `json:"updatedAt"`
+		ArchivedAt  *time.Time `json:"archivedAt,omitempty"`
 
 		PurchasePrice float64 `json:"purchasePrice"`
 
@@ -161,10 +163,11 @@ type (
 		PurchaseFrom string     `json:"purchaseFrom"`
 
 		// Sold
-		SoldTime  types.Date `json:"soldTime"`
-		SoldTo    string     `json:"soldTo"`
-		SoldPrice float64    `json:"soldPrice"`
-		SoldNotes string     `json:"soldNotes"`
+		SoldTime   types.Date `json:"soldTime"`
+		SoldTo     string     `json:"soldTo"`
+		SoldPrice  float64    `json:"soldPrice"`
+		SoldNotes  string     `json:"soldNotes"`
+		ArchivedAt *time.Time `json:"archivedAt,omitempty"`
 
 		// Extras
 		Notes string `json:"notes"`
@@ -198,6 +201,11 @@ func mapItemSummary(item *ent.Item) ItemSummary {
 		}
 	}
 
+	var archivedAt *time.Time
+	if !item.ArchivedAt.IsZero() {
+		archivedAt = item.ArchivedAt
+	}
+
 	return ItemSummary{
 		ID:            item.ID,
 		AssetID:       AssetID(item.AssetID),
@@ -208,6 +216,7 @@ func mapItemSummary(item *ent.Item) ItemSummary {
 		CreatedAt:     item.CreatedAt,
 		UpdatedAt:     item.UpdatedAt,
 		Archived:      item.Archived,
+		ArchivedAt:    archivedAt,
 		PurchasePrice: item.PurchasePrice,
 
 		// Edges
@@ -644,7 +653,14 @@ func (e *ItemsRepository) UpdateByGroup(ctx context.Context, gid uuid.UUID, data
 		SetWarrantyDetails(data.WarrantyDetails).
 		SetQuantity(data.Quantity).
 		SetAssetID(int(data.AssetID)).
-		SetSyncChildItemsLocations(data.SyncChildItemsLocations)
+		SetSyncChildItemsLocations(data.SyncChildItemsLocations).
+		SetArchived(data.Archived)
+
+	if data.ArchivedAt != nil {
+		q.SetArchivedAt(*data.ArchivedAt)
+	} else {
+		q.ClearArchivedAt()
+	}
 
 	currentLabels, err := e.db.Item.Query().Where(item.ID(data.ID)).QueryLabel().All(ctx)
 	if err != nil {

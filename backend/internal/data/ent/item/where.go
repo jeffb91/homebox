@@ -176,6 +176,11 @@ func SoldNotes(v string) predicate.Item {
 	return predicate.Item(sql.FieldEQ(FieldSoldNotes, v))
 }
 
+// ArchivedAt applies equality check predicate on the "archived_at" field. It's identical to ArchivedAtEQ.
+func ArchivedAt(v time.Time) predicate.Item {
+	return predicate.Item(sql.FieldEQ(FieldArchivedAt, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.Item {
 	return predicate.Item(sql.FieldEQ(FieldCreatedAt, v))
@@ -1419,6 +1424,56 @@ func SoldNotesEqualFold(v string) predicate.Item {
 // SoldNotesContainsFold applies the ContainsFold predicate on the "sold_notes" field.
 func SoldNotesContainsFold(v string) predicate.Item {
 	return predicate.Item(sql.FieldContainsFold(FieldSoldNotes, v))
+}
+
+// ArchivedAtEQ applies the EQ predicate on the "archived_at" field.
+func ArchivedAtEQ(v time.Time) predicate.Item {
+	return predicate.Item(sql.FieldEQ(FieldArchivedAt, v))
+}
+
+// ArchivedAtNEQ applies the NEQ predicate on the "archived_at" field.
+func ArchivedAtNEQ(v time.Time) predicate.Item {
+	return predicate.Item(sql.FieldNEQ(FieldArchivedAt, v))
+}
+
+// ArchivedAtIn applies the In predicate on the "archived_at" field.
+func ArchivedAtIn(vs ...time.Time) predicate.Item {
+	return predicate.Item(sql.FieldIn(FieldArchivedAt, vs...))
+}
+
+// ArchivedAtNotIn applies the NotIn predicate on the "archived_at" field.
+func ArchivedAtNotIn(vs ...time.Time) predicate.Item {
+	return predicate.Item(sql.FieldNotIn(FieldArchivedAt, vs...))
+}
+
+// ArchivedAtGT applies the GT predicate on the "archived_at" field.
+func ArchivedAtGT(v time.Time) predicate.Item {
+	return predicate.Item(sql.FieldGT(FieldArchivedAt, v))
+}
+
+// ArchivedAtGTE applies the GTE predicate on the "archived_at" field.
+func ArchivedAtGTE(v time.Time) predicate.Item {
+	return predicate.Item(sql.FieldGTE(FieldArchivedAt, v))
+}
+
+// ArchivedAtLT applies the LT predicate on the "archived_at" field.
+func ArchivedAtLT(v time.Time) predicate.Item {
+	return predicate.Item(sql.FieldLT(FieldArchivedAt, v))
+}
+
+// ArchivedAtLTE applies the LTE predicate on the "archived_at" field.
+func ArchivedAtLTE(v time.Time) predicate.Item {
+	return predicate.Item(sql.FieldLTE(FieldArchivedAt, v))
+}
+
+// ArchivedAtIsNil applies the IsNil predicate on the "archived_at" field.
+func ArchivedAtIsNil() predicate.Item {
+	return predicate.Item(sql.FieldIsNull(FieldArchivedAt))
+}
+
+// ArchivedAtNotNil applies the NotNil predicate on the "archived_at" field.
+func ArchivedAtNotNil() predicate.Item {
+	return predicate.Item(sql.FieldNotNull(FieldArchivedAt))
 }
 
 // HasGroup applies the HasEdge predicate on the "group" edge.

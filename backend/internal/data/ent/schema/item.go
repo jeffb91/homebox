@@ -96,6 +96,11 @@ func (Item) Fields() []ent.Field {
 		field.String("sold_notes").
 			MaxLen(1000).
 			Optional(),
+		// backend/app/schema/item.go
+
+		field.Time("archived_at").
+			Optional().
+			Nillable(),
 	}
 }
 

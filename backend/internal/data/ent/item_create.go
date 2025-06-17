@@ -355,6 +355,20 @@ func (ic *ItemCreate) SetNillableSoldNotes(s *string) *ItemCreate {
 	return ic
 }
 
+// SetArchivedAt sets the "archived_at" field.
+func (ic *ItemCreate) SetArchivedAt(t time.Time) *ItemCreate {
+	ic.mutation.SetArchivedAt(t)
+	return ic
+}
+
+// SetNillableArchivedAt sets the "archived_at" field if the given value is not nil.
+func (ic *ItemCreate) SetNillableArchivedAt(t *time.Time) *ItemCreate {
+	if t != nil {
+		ic.SetArchivedAt(*t)
+	}
+	return ic
+}
+
 // SetID sets the "id" field.
 func (ic *ItemCreate) SetID(u uuid.UUID) *ItemCreate {
 	ic.mutation.SetID(u)
@@ -787,6 +801,10 @@ func (ic *ItemCreate) createSpec() (*Item, *sqlgraph.CreateSpec) {
 	if value, ok := ic.mutation.SoldNotes(); ok {
 		_spec.SetField(item.FieldSoldNotes, field.TypeString, value)
 		_node.SoldNotes = value
+	}
+	if value, ok := ic.mutation.ArchivedAt(); ok {
+		_spec.SetField(item.FieldArchivedAt, field.TypeTime, value)
+		_node.ArchivedAt = &value
 	}
 	if nodes := ic.mutation.GroupIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

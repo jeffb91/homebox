@@ -93,6 +93,7 @@ export interface ItemField {
 
 export interface ItemOut {
   archived: boolean;
+  archivedAt?: string | null;
   /** @example "0" */
   assetId: string;
   attachments: ItemAttachment[];
