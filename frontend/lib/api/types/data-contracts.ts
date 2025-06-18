@@ -97,6 +97,7 @@ export interface ItemOut {
   assetId: string;
   attachments: ItemAttachment[];
   createdAt: Date | string;
+  archivedAt: Date | string;
   description: string;
   fields: ItemField[];
   id: string;

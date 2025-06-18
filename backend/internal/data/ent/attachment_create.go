@@ -12,7 +12,6 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/attachment"
-	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/item"
 )
 
 // AttachmentCreate is the builder for creating a Attachment entity.
@@ -106,6 +105,18 @@ func (ac *AttachmentCreate) SetNillablePath(s *string) *AttachmentCreate {
 	return ac
 }
 
+// SetRelatedType sets the "related_type" field.
+func (ac *AttachmentCreate) SetRelatedType(s string) *AttachmentCreate {
+	ac.mutation.SetRelatedType(s)
+	return ac
+}
+
+// SetRelatedID sets the "related_id" field.
+func (ac *AttachmentCreate) SetRelatedID(u uuid.UUID) *AttachmentCreate {
+	ac.mutation.SetRelatedID(u)
+	return ac
+}
+
 // SetID sets the "id" field.
 func (ac *AttachmentCreate) SetID(u uuid.UUID) *AttachmentCreate {
 	ac.mutation.SetID(u)
@@ -118,17 +129,6 @@ func (ac *AttachmentCreate) SetNillableID(u *uuid.UUID) *AttachmentCreate {
 		ac.SetID(*u)
 	}
 	return ac
-}
-
-// SetItemID sets the "item" edge to the Item entity by ID.
-func (ac *AttachmentCreate) SetItemID(id uuid.UUID) *AttachmentCreate {
-	ac.mutation.SetItemID(id)
-	return ac
-}
-
-// SetItem sets the "item" edge to the Item entity.
-func (ac *AttachmentCreate) SetItem(i *Item) *AttachmentCreate {
-	return ac.SetItemID(i.ID)
 }
 
 // Mutation returns the AttachmentMutation object of the builder.
@@ -221,8 +221,11 @@ func (ac *AttachmentCreate) check() error {
 	if _, ok := ac.mutation.Path(); !ok {
 		return &ValidationError{Name: "path", err: errors.New(`ent: missing required field "Attachment.path"`)}
 	}
-	if len(ac.mutation.ItemIDs()) == 0 {
-		return &ValidationError{Name: "item", err: errors.New(`ent: missing required edge "Attachment.item"`)}
+	if _, ok := ac.mutation.RelatedType(); !ok {
+		return &ValidationError{Name: "related_type", err: errors.New(`ent: missing required field "Attachment.related_type"`)}
+	}
+	if _, ok := ac.mutation.RelatedID(); !ok {
+		return &ValidationError{Name: "related_id", err: errors.New(`ent: missing required field "Attachment.related_id"`)}
 	}
 	return nil
 }
@@ -283,22 +286,13 @@ func (ac *AttachmentCreate) createSpec() (*Attachment, *sqlgraph.CreateSpec) {
 		_spec.SetField(attachment.FieldPath, field.TypeString, value)
 		_node.Path = value
 	}
-	if nodes := ac.mutation.ItemIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   attachment.ItemTable,
-			Columns: []string{attachment.ItemColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(item.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_node.item_attachments = &nodes[0]
-		_spec.Edges = append(_spec.Edges, edge)
+	if value, ok := ac.mutation.RelatedType(); ok {
+		_spec.SetField(attachment.FieldRelatedType, field.TypeString, value)
+		_node.RelatedType = value
+	}
+	if value, ok := ac.mutation.RelatedID(); ok {
+		_spec.SetField(attachment.FieldRelatedID, field.TypeUUID, value)
+		_node.RelatedID = value
 	}
 	return _node, _spec
 }

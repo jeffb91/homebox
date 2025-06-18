@@ -13,7 +13,6 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/attachment"
-	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/item"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/predicate"
 )
 
@@ -24,7 +23,6 @@ type AttachmentQuery struct {
 	order      []attachment.OrderOption
 	inters     []Interceptor
 	predicates []predicate.Attachment
-	withItem   *ItemQuery
 	withFKs    bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -60,28 +58,6 @@ func (aq *AttachmentQuery) Unique(unique bool) *AttachmentQuery {
 func (aq *AttachmentQuery) Order(o ...attachment.OrderOption) *AttachmentQuery {
 	aq.order = append(aq.order, o...)
 	return aq
-}
-
-// QueryItem chains the current query on the "item" edge.
-func (aq *AttachmentQuery) QueryItem() *ItemQuery {
-	query := (&ItemClient{config: aq.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := aq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := aq.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(attachment.Table, attachment.FieldID, selector),
-			sqlgraph.To(item.Table, item.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, attachment.ItemTable, attachment.ItemColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(aq.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
 }
 
 // First returns the first Attachment entity from the query.
@@ -276,22 +252,10 @@ func (aq *AttachmentQuery) Clone() *AttachmentQuery {
 		order:      append([]attachment.OrderOption{}, aq.order...),
 		inters:     append([]Interceptor{}, aq.inters...),
 		predicates: append([]predicate.Attachment{}, aq.predicates...),
-		withItem:   aq.withItem.Clone(),
 		// clone intermediate query.
 		sql:  aq.sql.Clone(),
 		path: aq.path,
 	}
-}
-
-// WithItem tells the query-builder to eager-load the nodes that are connected to
-// the "item" edge. The optional arguments are used to configure the query builder of the edge.
-func (aq *AttachmentQuery) WithItem(opts ...func(*ItemQuery)) *AttachmentQuery {
-	query := (&ItemClient{config: aq.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	aq.withItem = query
-	return aq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -370,16 +334,10 @@ func (aq *AttachmentQuery) prepareQuery(ctx context.Context) error {
 
 func (aq *AttachmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Attachment, error) {
 	var (
-		nodes       = []*Attachment{}
-		withFKs     = aq.withFKs
-		_spec       = aq.querySpec()
-		loadedTypes = [1]bool{
-			aq.withItem != nil,
-		}
+		nodes   = []*Attachment{}
+		withFKs = aq.withFKs
+		_spec   = aq.querySpec()
 	)
-	if aq.withItem != nil {
-		withFKs = true
-	}
 	if withFKs {
 		_spec.Node.Columns = append(_spec.Node.Columns, attachment.ForeignKeys...)
 	}
@@ -389,7 +347,6 @@ func (aq *AttachmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*A
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &Attachment{config: aq.config}
 		nodes = append(nodes, node)
-		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	for i := range hooks {
@@ -401,46 +358,7 @@ func (aq *AttachmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*A
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := aq.withItem; query != nil {
-		if err := aq.loadItem(ctx, query, nodes, nil,
-			func(n *Attachment, e *Item) { n.Edges.Item = e }); err != nil {
-			return nil, err
-		}
-	}
 	return nodes, nil
-}
-
-func (aq *AttachmentQuery) loadItem(ctx context.Context, query *ItemQuery, nodes []*Attachment, init func(*Attachment), assign func(*Attachment, *Item)) error {
-	ids := make([]uuid.UUID, 0, len(nodes))
-	nodeids := make(map[uuid.UUID][]*Attachment)
-	for i := range nodes {
-		if nodes[i].item_attachments == nil {
-			continue
-		}
-		fk := *nodes[i].item_attachments
-		if _, ok := nodeids[fk]; !ok {
-			ids = append(ids, fk)
-		}
-		nodeids[fk] = append(nodeids[fk], nodes[i])
-	}
-	if len(ids) == 0 {
-		return nil
-	}
-	query.Where(item.IDIn(ids...))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		nodes, ok := nodeids[n.ID]
-		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "item_attachments" returned %v`, n.ID)
-		}
-		for i := range nodes {
-			assign(nodes[i], n)
-		}
-	}
-	return nil
 }
 
 func (aq *AttachmentQuery) sqlCount(ctx context.Context) (int, error) {

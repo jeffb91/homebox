@@ -2,8 +2,9 @@ package schema
 
 import (
 	"entgo.io/ent"
-	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"entgo.io/ent/schema/index"
+	"github.com/google/uuid"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/schema/mixins"
 )
 
@@ -25,15 +26,26 @@ func (Attachment) Fields() []ent.Field {
 		field.Bool("primary").Default(false),
 		field.String("title").Default(""),
 		field.String("path").Default(""),
+		// NIEUWE POLYMORPHIC VELDEN
+		field.String("related_type").
+			Comment("Type of related entity: items, maintenance_entries, incidents, reports"),
+		field.UUID("related_id", uuid.UUID{}).
+			Comment("ID of the related entity"),
 	}
 }
 
 // Edges of the Attachment.
 func (Attachment) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.From("item", Item.Type).
-			Ref("attachments").
-			Required().
-			Unique(),
+		// Verwijder de oude directe item edge
+		// We gebruiken nu related_type + related_id voor polymorphic relations
+	}
+}
+
+// Indexes of the Attachment.
+func (Attachment) Indexes() []ent.Index {
+	return []ent.Index{
+		index.Fields("related_type", "related_id"),
+		index.Fields("related_type"),
 	}
 }

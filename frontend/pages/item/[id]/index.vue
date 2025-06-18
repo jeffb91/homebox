@@ -203,6 +203,10 @@
         text: item.value?.archived ? "Yes" : "No",
       },
       {
+        name: "items.archived_at",
+        text: item.value?.archivedAt ? fmtDate(item.value.archivedAt) : "-",
+      },
+      {
         name: "items.notes",
         type: "markdown",
         text: item.value?.notes,
