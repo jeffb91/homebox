@@ -978,14 +978,9 @@ func (e *ItemsRepository) SetPrimaryPhotos(ctx context.Context, gid uuid.UUID) (
 		// Find the first photo attachment
 		a, err := e.db.Attachment.Query().
 			Where(
-<<<<<<< HEAD
 				attachment.And(attachment.RelatedType("items"), attachment.RelatedID(id)),
-=======
 				attachment.RelatedTypeEQ("item"),
 				attachment.RelatedID(id),
->>>>>>> DtmAfdanking
-				attachment.TypeEQ(attachment.TypePhoto),
-				attachment.Primary(false),
 			).
 			First(ctx)
 		if err != nil {

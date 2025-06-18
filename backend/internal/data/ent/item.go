@@ -38,6 +38,8 @@ type Item struct {
 	Insured bool `json:"insured,omitempty"`
 	// Archived holds the value of the "archived" field.
 	Archived bool `json:"archived,omitempty"`
+	// ArchivedAt holds the value of the "archived_at" field.
+	ArchivedAt *time.Time `json:"archived_at,omitempty"`
 	// AssetID holds the value of the "asset_id" field.
 	AssetID int `json:"asset_id,omitempty"`
 	// SyncChildItemsLocations holds the value of the "sync_child_items_locations" field.
@@ -68,8 +70,6 @@ type Item struct {
 	SoldPrice float64 `json:"sold_price,omitempty"`
 	// SoldNotes holds the value of the "sold_notes" field.
 	SoldNotes string `json:"sold_notes,omitempty"`
-	// ArchivedAt holds the value of the "archived_at" field.
-	ArchivedAt *time.Time `json:"archived_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ItemQuery when eager-loading is set.
 	Edges          ItemEdges `json:"edges"`
@@ -193,7 +193,7 @@ func (*Item) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case item.FieldName, item.FieldDescription, item.FieldImportRef, item.FieldNotes, item.FieldSerialNumber, item.FieldModelNumber, item.FieldManufacturer, item.FieldWarrantyDetails, item.FieldPurchaseFrom, item.FieldSoldTo, item.FieldSoldNotes:
 			values[i] = new(sql.NullString)
-		case item.FieldCreatedAt, item.FieldUpdatedAt, item.FieldWarrantyExpires, item.FieldPurchaseTime, item.FieldSoldTime, item.FieldArchivedAt:
+		case item.FieldCreatedAt, item.FieldUpdatedAt, item.FieldArchivedAt, item.FieldWarrantyExpires, item.FieldPurchaseTime, item.FieldSoldTime:
 			values[i] = new(sql.NullTime)
 		case item.FieldID:
 			values[i] = new(uuid.UUID)
@@ -277,6 +277,13 @@ func (i *Item) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field archived", values[j])
 			} else if value.Valid {
 				i.Archived = value.Bool
+			}
+		case item.FieldArchivedAt:
+			if value, ok := values[j].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field archived_at", values[j])
+			} else if value.Valid {
+				i.ArchivedAt = new(time.Time)
+				*i.ArchivedAt = value.Time
 			}
 		case item.FieldAssetID:
 			if value, ok := values[j].(*sql.NullInt64); !ok {
@@ -367,13 +374,6 @@ func (i *Item) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field sold_notes", values[j])
 			} else if value.Valid {
 				i.SoldNotes = value.String
-			}
-		case item.FieldArchivedAt:
-			if value, ok := values[j].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field archived_at", values[j])
-			} else if value.Valid {
-				i.ArchivedAt = new(time.Time)
-				*i.ArchivedAt = value.Time
 			}
 		case item.ForeignKeys[0]:
 			if value, ok := values[j].(*sql.NullScanner); !ok {
@@ -499,6 +499,11 @@ func (i *Item) String() string {
 	builder.WriteString("archived=")
 	builder.WriteString(fmt.Sprintf("%v", i.Archived))
 	builder.WriteString(", ")
+	if v := i.ArchivedAt; v != nil {
+		builder.WriteString("archived_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
+	builder.WriteString(", ")
 	builder.WriteString("asset_id=")
 	builder.WriteString(fmt.Sprintf("%v", i.AssetID))
 	builder.WriteString(", ")
@@ -543,11 +548,6 @@ func (i *Item) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("sold_notes=")
 	builder.WriteString(i.SoldNotes)
-	builder.WriteString(", ")
-	if v := i.ArchivedAt; v != nil {
-		builder.WriteString("archived_at=")
-		builder.WriteString(v.Format(time.ANSIC))
-	}
 	builder.WriteByte(')')
 	return builder.String()
 }

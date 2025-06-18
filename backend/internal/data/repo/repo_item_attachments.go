@@ -232,7 +232,6 @@ func ToItemAttachment(attachment *ent.Attachment) ItemAttachment {
 //	return attachmentDb, nil
 //}
 
-<<<<<<< HEAD
 	// If there is an error during file creation rollback the database
 	defer func() {
 		if v := recover(); v != nil {
@@ -477,71 +476,6 @@ func (r *AttachmentRepo) Delete(ctx context.Context, id uuid.UUID) error {
 
 	return r.db.Attachment.DeleteOneID(id).Exec(ctx)
 }
-=======
-//func (r *AttachmentRepo) Get(ctx context.Context, id uuid.UUID) (*ent.Attachment, error) {
-//	return r.db.Attachment.
-//		Query().
-//		Where(attachment.ID(id)).
-//		Only(ctx)
-//}
-//
-//func (r *AttachmentRepo) Update(ctx context.Context, id uuid.UUID, data *ItemAttachmentUpdate) (*ent.Attachment, error) {
-//	// TODO: execute within Tx
-//	typ := attachment.Type(data.Type)
-//
-//	bldr := r.db.Attachment.UpdateOneID(id).
-//		SetType(typ)
-//
-//	// Primary only applies to photos
-//	if typ == attachment.TypePhoto {
-//		bldr = bldr.SetPrimary(data.Primary)
-//	} else {
-//		bldr = bldr.SetPrimary(false)
-//	}
-//
-//	updatedAttachment, err := bldr.Save(ctx)
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	// Ensure all other attachments are not primary
-//	err = r.db.Attachment.Update().
-//		Where(
-//			attachment.RelatedTypeEQ("item"),
-//			attachment.RelatedID(updatedAttachment.RelatedID),
-//			attachment.IDNEQ(updatedAttachment.ID),
-//		).
-//		SetPrimary(false).
-//		Exec(ctx)
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	return r.Get(ctx, updatedAttachment.ID)
-//}
-//
-//func (r *AttachmentRepo) Delete(ctx context.Context, id uuid.UUID) error {
-//	doc, error := r.db.Attachment.Get(ctx, id)
-//	if error != nil {
-//		return error
-//	}
-//
-//	all, err := r.db.Attachment.Query().Where(attachment.Path(doc.Path)).All(ctx)
-//	if err != nil {
-//		return err
-//	}
-//
-//	// If this is the last attachment for this path, delete the file
-//	if len(all) == 1 {
-//		err := os.Remove(doc.Path)
-//		if err != nil {
-//			return err
-//		}
-//	}
-//
-//	return r.db.Attachment.DeleteOneID(id).Exec(ctx)
-//}
->>>>>>> DtmAfdanking
 
 func (r *AttachmentRepo) Rename(ctx context.Context, id uuid.UUID, title string) (*ent.Attachment, error) {
 	return r.db.Attachment.UpdateOneID(id).SetTitle(title).Save(ctx)

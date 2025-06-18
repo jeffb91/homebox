@@ -34,18 +34,6 @@ var (
 				OnDelete:   schema.Cascade,
 			},
 		},
-		Indexes: []*schema.Index{
-			{
-				Name:    "attachment_related_type_related_id",
-				Unique:  false,
-				Columns: []*schema.Column{AttachmentsColumns[7], AttachmentsColumns[8]},
-			},
-			{
-				Name:    "attachment_related_type",
-				Unique:  false,
-				Columns: []*schema.Column{AttachmentsColumns[7]},
-			},
-		},
 	}
 	// AuthRolesColumns holds the columns for the "auth_roles" table.
 	AuthRolesColumns = []*schema.Column{
@@ -147,6 +135,7 @@ var (
 		{Name: "quantity", Type: field.TypeInt, Default: 1},
 		{Name: "insured", Type: field.TypeBool, Default: false},
 		{Name: "archived", Type: field.TypeBool, Default: false},
+		{Name: "archived_at", Type: field.TypeTime, Nullable: true},
 		{Name: "asset_id", Type: field.TypeInt, Default: 0},
 		{Name: "sync_child_items_locations", Type: field.TypeBool, Default: false},
 		{Name: "serial_number", Type: field.TypeString, Nullable: true, Size: 255},
@@ -162,7 +151,6 @@ var (
 		{Name: "sold_to", Type: field.TypeString, Nullable: true},
 		{Name: "sold_price", Type: field.TypeFloat64, Default: 0},
 		{Name: "sold_notes", Type: field.TypeString, Nullable: true, Size: 1000},
-		{Name: "archived_at", Type: field.TypeTime, Nullable: true},
 		{Name: "group_items", Type: field.TypeUUID},
 		{Name: "item_children", Type: field.TypeUUID, Nullable: true},
 		{Name: "location_items", Type: field.TypeUUID, Nullable: true},
@@ -201,17 +189,17 @@ var (
 			{
 				Name:    "item_manufacturer",
 				Unique:  false,
-				Columns: []*schema.Column{ItemsColumns[14]},
+				Columns: []*schema.Column{ItemsColumns[15]},
 			},
 			{
 				Name:    "item_model_number",
 				Unique:  false,
-				Columns: []*schema.Column{ItemsColumns[13]},
+				Columns: []*schema.Column{ItemsColumns[14]},
 			},
 			{
 				Name:    "item_serial_number",
 				Unique:  false,
-				Columns: []*schema.Column{ItemsColumns[12]},
+				Columns: []*schema.Column{ItemsColumns[13]},
 			},
 			{
 				Name:    "item_archived",
@@ -221,7 +209,7 @@ var (
 			{
 				Name:    "item_asset_id",
 				Unique:  false,
-				Columns: []*schema.Column{ItemsColumns[10]},
+				Columns: []*schema.Column{ItemsColumns[11]},
 			},
 		},
 	}

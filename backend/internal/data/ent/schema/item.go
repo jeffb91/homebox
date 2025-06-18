@@ -49,6 +49,9 @@ func (Item) Fields() []ent.Field {
 			Default(false),
 		field.Bool("archived").
 			Default(false),
+		field.Time("archived_at").
+			Optional().
+			Nillable(),
 		field.Int("asset_id").
 			Default(0),
 		field.Bool("sync_child_items_locations").
@@ -96,11 +99,6 @@ func (Item) Fields() []ent.Field {
 		field.String("sold_notes").
 			MaxLen(1000).
 			Optional(),
-		// backend/app/schema/item.go
-
-		field.Time("archived_at").
-			Optional().
-			Nillable(),
 	}
 }
 

@@ -167,14 +167,6 @@ func (au *AttachmentUpdate) check() error {
 			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "Attachment.type": %w`, err)}
 		}
 	}
-<<<<<<< HEAD
-=======
-	if v, ok := au.mutation.RelatedType(); ok {
-		if err := attachment.RelatedTypeValidator(v); err != nil {
-			return &ValidationError{Name: "related_type", err: fmt.Errorf(`ent: validator failed for field "Attachment.related_type": %w`, err)}
-		}
-	}
->>>>>>> DtmAfdanking
 	return nil
 }
 
@@ -382,14 +374,6 @@ func (auo *AttachmentUpdateOne) check() error {
 			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "Attachment.type": %w`, err)}
 		}
 	}
-<<<<<<< HEAD
-=======
-	if v, ok := auo.mutation.RelatedType(); ok {
-		if err := attachment.RelatedTypeValidator(v); err != nil {
-			return &ValidationError{Name: "related_type", err: fmt.Errorf(`ent: validator failed for field "Attachment.related_type": %w`, err)}
-		}
-	}
->>>>>>> DtmAfdanking
 	return nil
 }
 

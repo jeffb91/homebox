@@ -145,6 +145,7 @@ export interface ItemPath {
 
 export interface ItemSummary {
   archived: boolean;
+  archived_at?: string;
   /** @example "0" */
   assetId: string;
   createdAt: Date | string;

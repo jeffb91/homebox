@@ -30,9 +30,9 @@ type Attachment struct {
 	Title string `json:"title,omitempty"`
 	// Path holds the value of the "path" field.
 	Path string `json:"path,omitempty"`
-	// RelatedType holds the value of the "related_type" field.
+	// Type of related entity: items, maintenance_entries, incidents, reports
 	RelatedType string `json:"related_type,omitempty"`
-	// RelatedID holds the value of the "related_id" field.
+	// ID of the related entity
 	RelatedID        uuid.UUID `json:"related_id,omitempty"`
 	item_attachments *uuid.UUID
 	selectValues     sql.SelectValues

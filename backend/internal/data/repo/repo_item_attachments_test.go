@@ -81,13 +81,8 @@ func TestAttachmentRepo_Create(t *testing.T) {
 
 			withItems, err := tRepos.Attachments.Get(tt.args.ctx, got.ID)
 			require.NoError(t, err)
-<<<<<<< HEAD
 			require.Equal(t, "item", withItems.RelatedType)
 			require.Equal(t, tt.args.itemID, withItems.RelatedID)
-=======
-			assert.Equal(t, "item", withItems.RelatedType)
-			assert.Equal(t, tt.args.itemID, withItems.RelatedID)
->>>>>>> DtmAfdanking
 
 			ids = append(ids, got.ID)
 		})

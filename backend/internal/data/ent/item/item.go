@@ -33,6 +33,8 @@ const (
 	FieldInsured = "insured"
 	// FieldArchived holds the string denoting the archived field in the database.
 	FieldArchived = "archived"
+	// FieldArchivedAt holds the string denoting the archived_at field in the database.
+	FieldArchivedAt = "archived_at"
 	// FieldAssetID holds the string denoting the asset_id field in the database.
 	FieldAssetID = "asset_id"
 	// FieldSyncChildItemsLocations holds the string denoting the sync_child_items_locations field in the database.
@@ -63,8 +65,6 @@ const (
 	FieldSoldPrice = "sold_price"
 	// FieldSoldNotes holds the string denoting the sold_notes field in the database.
 	FieldSoldNotes = "sold_notes"
-	// FieldArchivedAt holds the string denoting the archived_at field in the database.
-	FieldArchivedAt = "archived_at"
 	// EdgeGroup holds the string denoting the group edge name in mutations.
 	EdgeGroup = "group"
 	// EdgeParent holds the string denoting the parent edge name in mutations.
@@ -145,6 +145,7 @@ var Columns = []string{
 	FieldQuantity,
 	FieldInsured,
 	FieldArchived,
+	FieldArchivedAt,
 	FieldAssetID,
 	FieldSyncChildItemsLocations,
 	FieldSerialNumber,
@@ -160,7 +161,6 @@ var Columns = []string{
 	FieldSoldTo,
 	FieldSoldPrice,
 	FieldSoldNotes,
-	FieldArchivedAt,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "items"
@@ -290,6 +290,11 @@ func ByArchived(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldArchived, opts...).ToFunc()
 }
 
+// ByArchivedAt orders the results by the archived_at field.
+func ByArchivedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldArchivedAt, opts...).ToFunc()
+}
+
 // ByAssetID orders the results by the asset_id field.
 func ByAssetID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldAssetID, opts...).ToFunc()
@@ -363,11 +368,6 @@ func BySoldPrice(opts ...sql.OrderTermOption) OrderOption {
 // BySoldNotes orders the results by the sold_notes field.
 func BySoldNotes(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSoldNotes, opts...).ToFunc()
-}
-
-// ByArchivedAt orders the results by the archived_at field.
-func ByArchivedAt(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldArchivedAt, opts...).ToFunc()
 }
 
 // ByGroupField orders the results by group field.

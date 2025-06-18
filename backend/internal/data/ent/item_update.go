@@ -164,6 +164,26 @@ func (iu *ItemUpdate) SetNillableArchived(b *bool) *ItemUpdate {
 	return iu
 }
 
+// SetArchivedAt sets the "archived_at" field.
+func (iu *ItemUpdate) SetArchivedAt(t time.Time) *ItemUpdate {
+	iu.mutation.SetArchivedAt(t)
+	return iu
+}
+
+// SetNillableArchivedAt sets the "archived_at" field if the given value is not nil.
+func (iu *ItemUpdate) SetNillableArchivedAt(t *time.Time) *ItemUpdate {
+	if t != nil {
+		iu.SetArchivedAt(*t)
+	}
+	return iu
+}
+
+// ClearArchivedAt clears the value of the "archived_at" field.
+func (iu *ItemUpdate) ClearArchivedAt() *ItemUpdate {
+	iu.mutation.ClearArchivedAt()
+	return iu
+}
+
 // SetAssetID sets the "asset_id" field.
 func (iu *ItemUpdate) SetAssetID(i int) *ItemUpdate {
 	iu.mutation.ResetAssetID()
@@ -452,26 +472,6 @@ func (iu *ItemUpdate) SetNillableSoldNotes(s *string) *ItemUpdate {
 // ClearSoldNotes clears the value of the "sold_notes" field.
 func (iu *ItemUpdate) ClearSoldNotes() *ItemUpdate {
 	iu.mutation.ClearSoldNotes()
-	return iu
-}
-
-// SetArchivedAt sets the "archived_at" field.
-func (iu *ItemUpdate) SetArchivedAt(t time.Time) *ItemUpdate {
-	iu.mutation.SetArchivedAt(t)
-	return iu
-}
-
-// SetNillableArchivedAt sets the "archived_at" field if the given value is not nil.
-func (iu *ItemUpdate) SetNillableArchivedAt(t *time.Time) *ItemUpdate {
-	if t != nil {
-		iu.SetArchivedAt(*t)
-	}
-	return iu
-}
-
-// ClearArchivedAt clears the value of the "archived_at" field.
-func (iu *ItemUpdate) ClearArchivedAt() *ItemUpdate {
-	iu.mutation.ClearArchivedAt()
 	return iu
 }
 
@@ -864,6 +864,12 @@ func (iu *ItemUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := iu.mutation.Archived(); ok {
 		_spec.SetField(item.FieldArchived, field.TypeBool, value)
 	}
+	if value, ok := iu.mutation.ArchivedAt(); ok {
+		_spec.SetField(item.FieldArchivedAt, field.TypeTime, value)
+	}
+	if iu.mutation.ArchivedAtCleared() {
+		_spec.ClearField(item.FieldArchivedAt, field.TypeTime)
+	}
 	if value, ok := iu.mutation.AssetID(); ok {
 		_spec.SetField(item.FieldAssetID, field.TypeInt, value)
 	}
@@ -947,12 +953,6 @@ func (iu *ItemUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if iu.mutation.SoldNotesCleared() {
 		_spec.ClearField(item.FieldSoldNotes, field.TypeString)
-	}
-	if value, ok := iu.mutation.ArchivedAt(); ok {
-		_spec.SetField(item.FieldArchivedAt, field.TypeTime, value)
-	}
-	if iu.mutation.ArchivedAtCleared() {
-		_spec.ClearField(item.FieldArchivedAt, field.TypeTime)
 	}
 	if iu.mutation.GroupCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -1415,6 +1415,26 @@ func (iuo *ItemUpdateOne) SetNillableArchived(b *bool) *ItemUpdateOne {
 	return iuo
 }
 
+// SetArchivedAt sets the "archived_at" field.
+func (iuo *ItemUpdateOne) SetArchivedAt(t time.Time) *ItemUpdateOne {
+	iuo.mutation.SetArchivedAt(t)
+	return iuo
+}
+
+// SetNillableArchivedAt sets the "archived_at" field if the given value is not nil.
+func (iuo *ItemUpdateOne) SetNillableArchivedAt(t *time.Time) *ItemUpdateOne {
+	if t != nil {
+		iuo.SetArchivedAt(*t)
+	}
+	return iuo
+}
+
+// ClearArchivedAt clears the value of the "archived_at" field.
+func (iuo *ItemUpdateOne) ClearArchivedAt() *ItemUpdateOne {
+	iuo.mutation.ClearArchivedAt()
+	return iuo
+}
+
 // SetAssetID sets the "asset_id" field.
 func (iuo *ItemUpdateOne) SetAssetID(i int) *ItemUpdateOne {
 	iuo.mutation.ResetAssetID()
@@ -1703,26 +1723,6 @@ func (iuo *ItemUpdateOne) SetNillableSoldNotes(s *string) *ItemUpdateOne {
 // ClearSoldNotes clears the value of the "sold_notes" field.
 func (iuo *ItemUpdateOne) ClearSoldNotes() *ItemUpdateOne {
 	iuo.mutation.ClearSoldNotes()
-	return iuo
-}
-
-// SetArchivedAt sets the "archived_at" field.
-func (iuo *ItemUpdateOne) SetArchivedAt(t time.Time) *ItemUpdateOne {
-	iuo.mutation.SetArchivedAt(t)
-	return iuo
-}
-
-// SetNillableArchivedAt sets the "archived_at" field if the given value is not nil.
-func (iuo *ItemUpdateOne) SetNillableArchivedAt(t *time.Time) *ItemUpdateOne {
-	if t != nil {
-		iuo.SetArchivedAt(*t)
-	}
-	return iuo
-}
-
-// ClearArchivedAt clears the value of the "archived_at" field.
-func (iuo *ItemUpdateOne) ClearArchivedAt() *ItemUpdateOne {
-	iuo.mutation.ClearArchivedAt()
 	return iuo
 }
 
@@ -2145,6 +2145,12 @@ func (iuo *ItemUpdateOne) sqlSave(ctx context.Context) (_node *Item, err error) 
 	if value, ok := iuo.mutation.Archived(); ok {
 		_spec.SetField(item.FieldArchived, field.TypeBool, value)
 	}
+	if value, ok := iuo.mutation.ArchivedAt(); ok {
+		_spec.SetField(item.FieldArchivedAt, field.TypeTime, value)
+	}
+	if iuo.mutation.ArchivedAtCleared() {
+		_spec.ClearField(item.FieldArchivedAt, field.TypeTime)
+	}
 	if value, ok := iuo.mutation.AssetID(); ok {
 		_spec.SetField(item.FieldAssetID, field.TypeInt, value)
 	}
@@ -2228,12 +2234,6 @@ func (iuo *ItemUpdateOne) sqlSave(ctx context.Context) (_node *Item, err error) 
 	}
 	if iuo.mutation.SoldNotesCleared() {
 		_spec.ClearField(item.FieldSoldNotes, field.TypeString)
-	}
-	if value, ok := iuo.mutation.ArchivedAt(); ok {
-		_spec.SetField(item.FieldArchivedAt, field.TypeTime, value)
-	}
-	if iuo.mutation.ArchivedAtCleared() {
-		_spec.ClearField(item.FieldArchivedAt, field.TypeTime)
 	}
 	if iuo.mutation.GroupCleared() {
 		edge := &sqlgraph.EdgeSpec{
