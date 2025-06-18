@@ -414,22 +414,6 @@ func (c *AttachmentClient) GetX(ctx context.Context, id uuid.UUID) *Attachment {
 	return obj
 }
 
-// QueryItem queries the item edge of a Attachment.
-func (c *AttachmentClient) QueryItem(a *Attachment) *ItemQuery {
-	query := (&ItemClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := a.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(attachment.Table, attachment.FieldID, id),
-			sqlgraph.To(item.Table, item.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, attachment.ItemTable, attachment.ItemColumn),
-		)
-		fromV = sqlgraph.Neighbors(a.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
 // Hooks returns the client hooks.
 func (c *AttachmentClient) Hooks() []Hook {
 	return c.hooks.Attachment

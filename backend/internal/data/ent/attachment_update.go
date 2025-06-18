@@ -13,7 +13,6 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/attachment"
-	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/item"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/predicate"
 )
 
@@ -92,26 +91,37 @@ func (au *AttachmentUpdate) SetNillablePath(s *string) *AttachmentUpdate {
 	return au
 }
 
-// SetItemID sets the "item" edge to the Item entity by ID.
-func (au *AttachmentUpdate) SetItemID(id uuid.UUID) *AttachmentUpdate {
-	au.mutation.SetItemID(id)
+// SetRelatedType sets the "related_type" field.
+func (au *AttachmentUpdate) SetRelatedType(s string) *AttachmentUpdate {
+	au.mutation.SetRelatedType(s)
 	return au
 }
 
-// SetItem sets the "item" edge to the Item entity.
-func (au *AttachmentUpdate) SetItem(i *Item) *AttachmentUpdate {
-	return au.SetItemID(i.ID)
+// SetNillableRelatedType sets the "related_type" field if the given value is not nil.
+func (au *AttachmentUpdate) SetNillableRelatedType(s *string) *AttachmentUpdate {
+	if s != nil {
+		au.SetRelatedType(*s)
+	}
+	return au
+}
+
+// SetRelatedID sets the "related_id" field.
+func (au *AttachmentUpdate) SetRelatedID(u uuid.UUID) *AttachmentUpdate {
+	au.mutation.SetRelatedID(u)
+	return au
+}
+
+// SetNillableRelatedID sets the "related_id" field if the given value is not nil.
+func (au *AttachmentUpdate) SetNillableRelatedID(u *uuid.UUID) *AttachmentUpdate {
+	if u != nil {
+		au.SetRelatedID(*u)
+	}
+	return au
 }
 
 // Mutation returns the AttachmentMutation object of the builder.
 func (au *AttachmentUpdate) Mutation() *AttachmentMutation {
 	return au.mutation
-}
-
-// ClearItem clears the "item" edge to the Item entity.
-func (au *AttachmentUpdate) ClearItem() *AttachmentUpdate {
-	au.mutation.ClearItem()
-	return au
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -157,9 +167,6 @@ func (au *AttachmentUpdate) check() error {
 			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "Attachment.type": %w`, err)}
 		}
 	}
-	if au.mutation.ItemCleared() && len(au.mutation.ItemIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "Attachment.item"`)
-	}
 	return nil
 }
 
@@ -190,34 +197,11 @@ func (au *AttachmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := au.mutation.Path(); ok {
 		_spec.SetField(attachment.FieldPath, field.TypeString, value)
 	}
-	if au.mutation.ItemCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   attachment.ItemTable,
-			Columns: []string{attachment.ItemColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(item.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	if value, ok := au.mutation.RelatedType(); ok {
+		_spec.SetField(attachment.FieldRelatedType, field.TypeString, value)
 	}
-	if nodes := au.mutation.ItemIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   attachment.ItemTable,
-			Columns: []string{attachment.ItemColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(item.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	if value, ok := au.mutation.RelatedID(); ok {
+		_spec.SetField(attachment.FieldRelatedID, field.TypeUUID, value)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, au.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -301,26 +285,37 @@ func (auo *AttachmentUpdateOne) SetNillablePath(s *string) *AttachmentUpdateOne 
 	return auo
 }
 
-// SetItemID sets the "item" edge to the Item entity by ID.
-func (auo *AttachmentUpdateOne) SetItemID(id uuid.UUID) *AttachmentUpdateOne {
-	auo.mutation.SetItemID(id)
+// SetRelatedType sets the "related_type" field.
+func (auo *AttachmentUpdateOne) SetRelatedType(s string) *AttachmentUpdateOne {
+	auo.mutation.SetRelatedType(s)
 	return auo
 }
 
-// SetItem sets the "item" edge to the Item entity.
-func (auo *AttachmentUpdateOne) SetItem(i *Item) *AttachmentUpdateOne {
-	return auo.SetItemID(i.ID)
+// SetNillableRelatedType sets the "related_type" field if the given value is not nil.
+func (auo *AttachmentUpdateOne) SetNillableRelatedType(s *string) *AttachmentUpdateOne {
+	if s != nil {
+		auo.SetRelatedType(*s)
+	}
+	return auo
+}
+
+// SetRelatedID sets the "related_id" field.
+func (auo *AttachmentUpdateOne) SetRelatedID(u uuid.UUID) *AttachmentUpdateOne {
+	auo.mutation.SetRelatedID(u)
+	return auo
+}
+
+// SetNillableRelatedID sets the "related_id" field if the given value is not nil.
+func (auo *AttachmentUpdateOne) SetNillableRelatedID(u *uuid.UUID) *AttachmentUpdateOne {
+	if u != nil {
+		auo.SetRelatedID(*u)
+	}
+	return auo
 }
 
 // Mutation returns the AttachmentMutation object of the builder.
 func (auo *AttachmentUpdateOne) Mutation() *AttachmentMutation {
 	return auo.mutation
-}
-
-// ClearItem clears the "item" edge to the Item entity.
-func (auo *AttachmentUpdateOne) ClearItem() *AttachmentUpdateOne {
-	auo.mutation.ClearItem()
-	return auo
 }
 
 // Where appends a list predicates to the AttachmentUpdate builder.
@@ -379,9 +374,6 @@ func (auo *AttachmentUpdateOne) check() error {
 			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "Attachment.type": %w`, err)}
 		}
 	}
-	if auo.mutation.ItemCleared() && len(auo.mutation.ItemIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "Attachment.item"`)
-	}
 	return nil
 }
 
@@ -429,34 +421,11 @@ func (auo *AttachmentUpdateOne) sqlSave(ctx context.Context) (_node *Attachment,
 	if value, ok := auo.mutation.Path(); ok {
 		_spec.SetField(attachment.FieldPath, field.TypeString, value)
 	}
-	if auo.mutation.ItemCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   attachment.ItemTable,
-			Columns: []string{attachment.ItemColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(item.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	if value, ok := auo.mutation.RelatedType(); ok {
+		_spec.SetField(attachment.FieldRelatedType, field.TypeString, value)
 	}
-	if nodes := auo.mutation.ItemIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   attachment.ItemTable,
-			Columns: []string{attachment.ItemColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(item.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	if value, ok := auo.mutation.RelatedID(); ok {
+		_spec.SetField(attachment.FieldRelatedID, field.TypeUUID, value)
 	}
 	_node = &Attachment{config: auo.config}
 	_spec.Assign = _node.assignValues

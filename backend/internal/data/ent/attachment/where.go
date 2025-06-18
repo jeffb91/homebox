@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
-	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/predicate"
 )
@@ -79,6 +78,16 @@ func Title(v string) predicate.Attachment {
 // Path applies equality check predicate on the "path" field. It's identical to PathEQ.
 func Path(v string) predicate.Attachment {
 	return predicate.Attachment(sql.FieldEQ(FieldPath, v))
+}
+
+// RelatedType applies equality check predicate on the "related_type" field. It's identical to RelatedTypeEQ.
+func RelatedType(v string) predicate.Attachment {
+	return predicate.Attachment(sql.FieldEQ(FieldRelatedType, v))
+}
+
+// RelatedID applies equality check predicate on the "related_id" field. It's identical to RelatedIDEQ.
+func RelatedID(v uuid.UUID) predicate.Attachment {
+	return predicate.Attachment(sql.FieldEQ(FieldRelatedID, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
@@ -321,27 +330,109 @@ func PathContainsFold(v string) predicate.Attachment {
 	return predicate.Attachment(sql.FieldContainsFold(FieldPath, v))
 }
 
-// HasItem applies the HasEdge predicate on the "item" edge.
-func HasItem() predicate.Attachment {
-	return predicate.Attachment(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, ItemTable, ItemColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
+// RelatedTypeEQ applies the EQ predicate on the "related_type" field.
+func RelatedTypeEQ(v string) predicate.Attachment {
+	return predicate.Attachment(sql.FieldEQ(FieldRelatedType, v))
 }
 
-// HasItemWith applies the HasEdge predicate on the "item" edge with a given conditions (other predicates).
-func HasItemWith(preds ...predicate.Item) predicate.Attachment {
-	return predicate.Attachment(func(s *sql.Selector) {
-		step := newItemStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
+// RelatedTypeNEQ applies the NEQ predicate on the "related_type" field.
+func RelatedTypeNEQ(v string) predicate.Attachment {
+	return predicate.Attachment(sql.FieldNEQ(FieldRelatedType, v))
+}
+
+// RelatedTypeIn applies the In predicate on the "related_type" field.
+func RelatedTypeIn(vs ...string) predicate.Attachment {
+	return predicate.Attachment(sql.FieldIn(FieldRelatedType, vs...))
+}
+
+// RelatedTypeNotIn applies the NotIn predicate on the "related_type" field.
+func RelatedTypeNotIn(vs ...string) predicate.Attachment {
+	return predicate.Attachment(sql.FieldNotIn(FieldRelatedType, vs...))
+}
+
+// RelatedTypeGT applies the GT predicate on the "related_type" field.
+func RelatedTypeGT(v string) predicate.Attachment {
+	return predicate.Attachment(sql.FieldGT(FieldRelatedType, v))
+}
+
+// RelatedTypeGTE applies the GTE predicate on the "related_type" field.
+func RelatedTypeGTE(v string) predicate.Attachment {
+	return predicate.Attachment(sql.FieldGTE(FieldRelatedType, v))
+}
+
+// RelatedTypeLT applies the LT predicate on the "related_type" field.
+func RelatedTypeLT(v string) predicate.Attachment {
+	return predicate.Attachment(sql.FieldLT(FieldRelatedType, v))
+}
+
+// RelatedTypeLTE applies the LTE predicate on the "related_type" field.
+func RelatedTypeLTE(v string) predicate.Attachment {
+	return predicate.Attachment(sql.FieldLTE(FieldRelatedType, v))
+}
+
+// RelatedTypeContains applies the Contains predicate on the "related_type" field.
+func RelatedTypeContains(v string) predicate.Attachment {
+	return predicate.Attachment(sql.FieldContains(FieldRelatedType, v))
+}
+
+// RelatedTypeHasPrefix applies the HasPrefix predicate on the "related_type" field.
+func RelatedTypeHasPrefix(v string) predicate.Attachment {
+	return predicate.Attachment(sql.FieldHasPrefix(FieldRelatedType, v))
+}
+
+// RelatedTypeHasSuffix applies the HasSuffix predicate on the "related_type" field.
+func RelatedTypeHasSuffix(v string) predicate.Attachment {
+	return predicate.Attachment(sql.FieldHasSuffix(FieldRelatedType, v))
+}
+
+// RelatedTypeEqualFold applies the EqualFold predicate on the "related_type" field.
+func RelatedTypeEqualFold(v string) predicate.Attachment {
+	return predicate.Attachment(sql.FieldEqualFold(FieldRelatedType, v))
+}
+
+// RelatedTypeContainsFold applies the ContainsFold predicate on the "related_type" field.
+func RelatedTypeContainsFold(v string) predicate.Attachment {
+	return predicate.Attachment(sql.FieldContainsFold(FieldRelatedType, v))
+}
+
+// RelatedIDEQ applies the EQ predicate on the "related_id" field.
+func RelatedIDEQ(v uuid.UUID) predicate.Attachment {
+	return predicate.Attachment(sql.FieldEQ(FieldRelatedID, v))
+}
+
+// RelatedIDNEQ applies the NEQ predicate on the "related_id" field.
+func RelatedIDNEQ(v uuid.UUID) predicate.Attachment {
+	return predicate.Attachment(sql.FieldNEQ(FieldRelatedID, v))
+}
+
+// RelatedIDIn applies the In predicate on the "related_id" field.
+func RelatedIDIn(vs ...uuid.UUID) predicate.Attachment {
+	return predicate.Attachment(sql.FieldIn(FieldRelatedID, vs...))
+}
+
+// RelatedIDNotIn applies the NotIn predicate on the "related_id" field.
+func RelatedIDNotIn(vs ...uuid.UUID) predicate.Attachment {
+	return predicate.Attachment(sql.FieldNotIn(FieldRelatedID, vs...))
+}
+
+// RelatedIDGT applies the GT predicate on the "related_id" field.
+func RelatedIDGT(v uuid.UUID) predicate.Attachment {
+	return predicate.Attachment(sql.FieldGT(FieldRelatedID, v))
+}
+
+// RelatedIDGTE applies the GTE predicate on the "related_id" field.
+func RelatedIDGTE(v uuid.UUID) predicate.Attachment {
+	return predicate.Attachment(sql.FieldGTE(FieldRelatedID, v))
+}
+
+// RelatedIDLT applies the LT predicate on the "related_id" field.
+func RelatedIDLT(v uuid.UUID) predicate.Attachment {
+	return predicate.Attachment(sql.FieldLT(FieldRelatedID, v))
+}
+
+// RelatedIDLTE applies the LTE predicate on the "related_id" field.
+func RelatedIDLTE(v uuid.UUID) predicate.Attachment {
+	return predicate.Attachment(sql.FieldLTE(FieldRelatedID, v))
 }
 
 // And groups predicates with the AND operator between them.

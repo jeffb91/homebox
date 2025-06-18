@@ -89,14 +89,17 @@ func (r *AttachmentRepo) Create(ctx context.Context, itemID uuid.UUID, doc ItemC
 		SetCreatedAt(time.Now()).
 		SetUpdatedAt(time.Now()).
 		SetType(typ).
-		SetItemID(itemID).
+		SetRelatedType("items").
+		SetRelatedID(itemID).
 		SetTitle(doc.Title)
 
 	if typ == attachment.TypePhoto && primary {
 		bldr = bldr.SetPrimary(true)
 		err := r.db.Attachment.Update().
 			Where(
-				attachment.HasItemWith(item.ID(itemID)),
+				//attachment.HasItemWith(item.ID(itemID)),
+				attachment.And(attachment.RelatedType("items"),
+					attachment.RelatedID(itemID)),
 				attachment.IDNEQ(bldrId),
 			).
 			SetPrimary(false).
@@ -114,7 +117,9 @@ func (r *AttachmentRepo) Create(ctx context.Context, itemID uuid.UUID, doc ItemC
 		// that is of type photo
 		cnt, err := tx.Attachment.Query().
 			Where(
-				attachment.HasItemWith(item.ID(itemID)),
+				//attachment.HasItemWith(item.ID(itemID)),
+				attachment.And(attachment.RelatedType("items"),
+					attachment.RelatedID(itemID)),
 				attachment.TypeEQ(typ),
 			).
 			Count(ctx)
@@ -233,7 +238,6 @@ func (r *AttachmentRepo) Get(ctx context.Context, id uuid.UUID) (*ent.Attachment
 	return r.db.Attachment.
 		Query().
 		Where(attachment.ID(id)).
-		WithItem().
 		Only(ctx)
 }
 
@@ -256,15 +260,30 @@ func (r *AttachmentRepo) Update(ctx context.Context, id uuid.UUID, data *ItemAtt
 		return nil, err
 	}
 
-	attachmentItem, err := updatedAttachment.QueryItem().Only(ctx)
-	if err != nil {
-		return nil, err
+	var attachmentItem *ent.Item
+
+	switch updatedAttachment.RelatedType {
+	case "item":
+		attachmentItem, err = r.db.Item.Get(ctx, updatedAttachment.RelatedID)
+		if err != nil {
+			return nil, fmt.Errorf("kan item niet ophalen: %w", err)
+		}
+	case "onderhoud":
+		//onderhoud, err := r.db.Onderhoudsregistratie.Get(ctx, attachment.RelatedID)
+		_, err := r.db.MaintenanceEntry.Get(ctx, updatedAttachment.RelatedID)
+		if err != nil {
+			return nil, fmt.Errorf("onderhoud niet gevonden: %w", err)
+		}
+	default:
+		return nil, fmt.Errorf("onbekend of niet-ondersteund related_type: %s", updatedAttachment.RelatedType)
 	}
 
 	// Ensure all other attachments are not primary
 	err = r.db.Attachment.Update().
 		Where(
-			attachment.HasItemWith(item.ID(attachmentItem.ID)),
+			//attachment.HasItemWith(item.ID(attachmentItem.ID)),
+			attachment.And(attachment.RelatedType("items"),
+				attachment.RelatedID(attachmentItem.ID)),
 			attachment.IDNEQ(updatedAttachment.ID),
 		).
 		SetPrimary(false).
