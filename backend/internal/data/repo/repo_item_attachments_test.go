@@ -56,7 +56,17 @@ func TestAttachmentRepo_Create(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, _ := tRepos.Attachments.Create(tt.args.ctx, tt.args.itemID, ItemCreateAttachment{Title: "Test", Content: strings.NewReader("This is a test")}, tt.args.typ, false)
+			//got, _ := tRepos.Attachments.Create(tt.args.ctx, tt.args.itemID, AttachmentCreate{Title: "Test", Content: strings.NewReader("This is a test")}, tt.args.typ, false)
+
+			got, _ := tRepos.Attachments.Create(tt.args.ctx, AttachmentCreate{
+				RelatedType: "Test",
+				RelatedID:   tt.args.itemID,
+				Title:       "Test",
+				Type:        string(tt.args.typ),
+				File:        strings.NewReader("This is a test"),
+				Primary:     false,
+			})
+
 			// TODO: Figure out how this works and fix the test later
 			// if (err != nil) != tt.wantErr {
 			//	t.Errorf("AttachmentRepo.Create() error = %v, wantErr %v", err, tt.wantErr)
@@ -71,8 +81,13 @@ func TestAttachmentRepo_Create(t *testing.T) {
 
 			withItems, err := tRepos.Attachments.Get(tt.args.ctx, got.ID)
 			require.NoError(t, err)
+<<<<<<< HEAD
 			require.Equal(t, "item", withItems.RelatedType)
 			require.Equal(t, tt.args.itemID, withItems.RelatedID)
+=======
+			assert.Equal(t, "item", withItems.RelatedType)
+			assert.Equal(t, tt.args.itemID, withItems.RelatedID)
+>>>>>>> DtmAfdanking
 
 			ids = append(ids, got.ID)
 		})
@@ -93,7 +108,16 @@ func useAttachments(t *testing.T, n int) []*ent.Attachment {
 
 	attachments := make([]*ent.Attachment, n)
 	for i := 0; i < n; i++ {
-		attachment, err := tRepos.Attachments.Create(context.Background(), item.ID, ItemCreateAttachment{Title: "Test", Content: strings.NewReader("Test String")}, attachment.TypePhoto, true)
+		//attachment, err := tRepos.Attachments.Create(context.Background(), item.ID, AttachmentCreate{Title: "Test", Content: strings.NewReader("Test String")}, attachment.TypePhoto, true)
+		attachment, err := tRepos.Attachments.Create(context.Background(), AttachmentCreate{
+			RelatedType: "Test",
+			RelatedID:   item.ID,
+			Title:       "Test",
+			Type:        string(attachment.TypePhoto),
+			File:        strings.NewReader("Test String"),
+			Primary:     true,
+		})
+
 		require.NoError(t, err)
 		attachments[i] = attachment
 
@@ -108,7 +132,7 @@ func TestAttachmentRepo_Update(t *testing.T) {
 
 	for _, typ := range []attachment.Type{"photo", "manual", "warranty", "attachment"} {
 		t.Run(string(typ), func(t *testing.T) {
-			_, err := tRepos.Attachments.Update(context.Background(), entity.ID, &ItemAttachmentUpdate{
+			_, err := tRepos.Attachments.Update(context.Background(), entity.ID, AttachmentUpdate{
 				Type: string(typ),
 			})
 
@@ -136,7 +160,7 @@ func TestAttachmentRepo_EnsureSinglePrimaryAttachment(t *testing.T) {
 	attachments := useAttachments(t, 2)
 
 	setAndVerifyPrimary := func(primaryAttachmentID, nonPrimaryAttachmentID uuid.UUID) {
-		primaryAttachment, err := tRepos.Attachments.Update(ctx, primaryAttachmentID, &ItemAttachmentUpdate{
+		primaryAttachment, err := tRepos.Attachments.Update(ctx, primaryAttachmentID, AttachmentUpdate{
 			Type:    attachment.TypePhoto.String(),
 			Primary: true,
 		})

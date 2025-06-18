@@ -215,7 +215,6 @@
       scheduledDate: entry.scheduledDate ?? "",
       description: entry.description,
       measurement: entry.measurement, 
-      measurement: entry.measurement, 
       cost: parseFloat(entry.cost) ? entry.cost : "0",
     });
 
@@ -238,7 +237,6 @@
       completedDate: entry.completedDate ?? "null",
       scheduledDate: entry.scheduledDate ?? "null",
       description: entry.description,
-      measurement: entry.measurement,
       measurement: entry.measurement,
       cost: entry.cost,
     });
@@ -272,7 +270,6 @@
     entry.scheduledDate = new Date(maintenanceEntry.scheduledDate);
     entry.description = maintenanceEntry.description;
     entry.cost = maintenanceEntry.cost;
-    entry.measurement = maintenanceEntry.measurement;
     entry.measurement = maintenanceEntry.measurement;
     entry.itemId = null;
 
@@ -308,7 +305,6 @@
       completedDate: new Date(Date.now()),
       scheduledDate: maintenanceEntry.scheduledDate ?? "null",
       description: maintenanceEntry.description,
-      measurement: maintenanceEntry.measurement,
       measurement: maintenanceEntry.measurement,
       cost: maintenanceEntry.cost,
     });
@@ -372,7 +368,7 @@
       return;
     }
 
-    const { data, error } = await api.maintenance.attachments.addAttachment(entry.id ?? "", files[0], files[0].name, type);
+    const { data, error } = await api.attachments.add(entry.id ?? "", files[0], files[0].name, type);
 
     if (error) {
       toast.error(t("items.toast.failed_upload_attachment"));
@@ -395,7 +391,7 @@
       return;
     }
 
-    const { error, data } = await api.maintenance.deleteAttachment( attachmentId);
+    const { error, data } = await api.attachment.deleteAttachment( attachmentId);
     if (error) {
       toast.error(t("items.toast.failed_delete_attachment"));
       return;

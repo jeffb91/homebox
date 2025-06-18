@@ -1,7 +1,6 @@
 import { BaseAPI, route } from "../base";
 import { parseDate } from "../base/base-api";
 import type {
-  ItemAttachmentUpdate,
   ItemCreate,
   ItemOut,
   ItemPatch,
@@ -13,8 +12,9 @@ import type {
   MaintenanceEntryWithDetails,
 } from "../types/data-contracts";
 import type { AttachmentTypes, ItemSummaryPaginationResult } from "../types/non-generated";
-import type { MaintenanceFilters } from "./maintenance.ts";
+import type { MaintenanceFilters } from "./maintenance";
 import type { Requests } from "~~/lib/requests";
+import { AttachmentsAPI as GenericAttachmentsAPI } from "./attachments";
 
 export type ItemsQuery = {
   orderBy?: string;
@@ -30,36 +30,6 @@ export type ItemsQuery = {
   q?: string;
   fields?: string[];
 };
-
-export class AttachmentsAPI extends BaseAPI {
-  add(id: string, file: File | Blob, filename: string, type: AttachmentTypes | null = null, primary?: boolean) {
-    const formData = new FormData();
-    formData.append("file", file);
-    if (type) {
-      formData.append("type", type);
-    }
-    formData.append("name", filename);
-    if (primary !== undefined) {
-      formData.append("primary", primary.toString());
-    }
-
-    return this.http.post<FormData, ItemOut>({
-      url: route(`/items/${id}/attachments`),
-      data: formData,
-    });
-  }
-
-  delete(id: string, attachmentId: string) {
-    return this.http.delete<void>({ url: route(`/items/${id}/attachments/${attachmentId}`) });
-  }
-
-  update(id: string, attachmentId: string, data: ItemAttachmentUpdate) {
-    return this.http.put<ItemAttachmentUpdate, ItemOut>({
-      url: route(`/items/${id}/attachments/${attachmentId}`),
-      body: data,
-    });
-  }
-}
 
 export class FieldsAPI extends BaseAPI {
   getAll() {
@@ -87,15 +57,34 @@ export class ItemMaintenanceAPI extends BaseAPI {
 }
 
 export class ItemsApi extends BaseAPI {
-  attachments: AttachmentsAPI;
+  attachments: GenericAttachmentsAPI;
   maintenance: ItemMaintenanceAPI;
   fields: FieldsAPI;
 
   constructor(http: Requests, token: string) {
     super(http, token);
     this.fields = new FieldsAPI(http);
-    this.attachments = new AttachmentsAPI(http);
+    this.attachments = new GenericAttachmentsAPI(http);
     this.maintenance = new ItemMaintenanceAPI(http);
+  }
+
+  getAttachments(id: string) {
+    return this.attachments.getAll("item", id);
+  }
+
+  addAttachment(id: string, file: File, filename: string, type?: AttachmentTypes, primary?: boolean) {
+    return this.attachments.add("item", id, file, filename, type, primary);
+  }
+
+  updateAttachment(
+    attachmentId: string,
+    payload: { title?: string; type?: AttachmentTypes; primary?: boolean }
+  ) {
+    return this.attachments.update(attachmentId, payload);
+  }
+
+  deleteAttachment(attachmentId: string) {
+    return this.attachments.delete(attachmentId);
   }
 
   fullpath(id: string) {
@@ -117,7 +106,6 @@ export class ItemsApi extends BaseAPI {
       return payload;
     }
 
-    // Parse Date Types
     payload.data = parseDate(payload.data, ["purchaseTime", "soldTime", "warrantyExpires"]);
     return payload;
   }

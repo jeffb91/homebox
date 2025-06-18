@@ -129,10 +129,6 @@ func (a *app) mountRoutes(r *chi.Mux, chain *errchain.ErrChain, repos *repo.AllR
 		r.Patch("/items/{id}", chain.ToHandlerFunc(v1Ctrl.HandleItemPatch(), userMW...))
 		r.Delete("/items/{id}", chain.ToHandlerFunc(v1Ctrl.HandleItemDelete(), userMW...))
 
-		r.Post("/items/{id}/attachments", chain.ToHandlerFunc(v1Ctrl.HandleItemAttachmentCreate(), userMW...))
-		r.Put("/items/{id}/attachments/{attachment_id}", chain.ToHandlerFunc(v1Ctrl.HandleItemAttachmentUpdate(), userMW...))
-		r.Delete("/items/{id}/attachments/{attachment_id}", chain.ToHandlerFunc(v1Ctrl.HandleItemAttachmentDelete(), userMW...))
-
 		r.Get("/items/{id}/maintenance", chain.ToHandlerFunc(v1Ctrl.HandleMaintenanceLogGet(), userMW...))
 		r.Post("/items/{id}/maintenance", chain.ToHandlerFunc(v1Ctrl.HandleMaintenanceEntryCreate(), userMW...))
 
@@ -142,13 +138,13 @@ func (a *app) mountRoutes(r *chi.Mux, chain *errchain.ErrChain, repos *repo.AllR
 		r.Get("/maintenance", chain.ToHandlerFunc(v1Ctrl.HandleMaintenanceGetAll(), userMW...))
 		r.Put("/maintenance/{id}", chain.ToHandlerFunc(v1Ctrl.HandleMaintenanceEntryUpdate(), userMW...))
 		r.Delete("/maintenance/{id}", chain.ToHandlerFunc(v1Ctrl.HandleMaintenanceEntryDelete(), userMW...))
-		//Maintenance Attachments
-		r.Post("/maintenance/{id}/attachments", chain.ToHandlerFunc(v1Ctrl.HandleMaintenanceAttachmentCreate(), userMW...))
-		r.Get("/maintenance/attachments/{attachment_id}", chain.ToHandlerFunc(v1Ctrl.HandleMaintenanceAttachmentGet(), userMW...))
-		r.Delete("/maintenance/attachments/{attachment_id}", chain.ToHandlerFunc(v1Ctrl.HandleMaintenanceAttachmentDelete(), userMW...))
-		r.Put("/maintenance/attachments/{attachment_id}", chain.ToHandlerFunc(v1Ctrl.HandleMaintenanceAttachmentUpdate(), userMW...))
-		r.Get("/maintenance/{id}/attachments", chain.ToHandlerFunc(v1Ctrl.HandleMaintenanceAttachmentsList(), userMW...))
-		r.Post("/maintenance/{id}/attachments", chain.ToHandlerFunc(v1Ctrl.HandleMaintenanceAttachmentCreate(), userMW...))
+
+		// GENERIC ATTACHMENTS ENDPOINTS
+		r.Get("/attachments", chain.ToHandlerFunc(v1Ctrl.HandleAttachmentList(), userMW...)) // ?related_type=...&related_id=...
+		r.Post("/attachments", chain.ToHandlerFunc(v1Ctrl.HandleAttachmentCreate(), userMW...))
+		r.Get("/attachments/{attachment_id}", chain.ToHandlerFunc(v1Ctrl.HandleAttachmentGet(), userMW...))
+		r.Put("/attachments/{attachment_id}", chain.ToHandlerFunc(v1Ctrl.HandleAttachmentUpdate(), userMW...))
+		r.Delete("/attachments/{attachment_id}", chain.ToHandlerFunc(v1Ctrl.HandleAttachmentDelete(), userMW...))
 
 		// Notifiers
 		r.Get("/notifiers", chain.ToHandlerFunc(v1Ctrl.HandleGetUserNotifiers(), userMW...))
@@ -164,10 +160,6 @@ func (a *app) mountRoutes(r *chi.Mux, chain *errchain.ErrChain, repos *repo.AllR
 		}
 
 		r.Get("/qrcode", chain.ToHandlerFunc(v1Ctrl.HandleGenerateQRCode(), assetMW...))
-		r.Get(
-			"/items/{id}/attachments/{attachment_id}",
-			chain.ToHandlerFunc(v1Ctrl.HandleItemAttachmentGet(), assetMW...),
-		)
 
 		// Labelmaker
 		r.Get("/labelmaker/location/{id}", chain.ToHandlerFunc(v1Ctrl.HandleGetLocationLabel(), userMW...))

@@ -224,6 +224,11 @@ func (ac *AttachmentCreate) check() error {
 	if _, ok := ac.mutation.RelatedType(); !ok {
 		return &ValidationError{Name: "related_type", err: errors.New(`ent: missing required field "Attachment.related_type"`)}
 	}
+	if v, ok := ac.mutation.RelatedType(); ok {
+		if err := attachment.RelatedTypeValidator(v); err != nil {
+			return &ValidationError{Name: "related_type", err: fmt.Errorf(`ent: validator failed for field "Attachment.related_type": %w`, err)}
+		}
+	}
 	if _, ok := ac.mutation.RelatedID(); !ok {
 		return &ValidationError{Name: "related_id", err: errors.New(`ent: missing required field "Attachment.related_id"`)}
 	}

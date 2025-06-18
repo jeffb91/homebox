@@ -44,6 +44,9 @@ func (me *MaintenanceEntry) GetID() uuid.UUID {
 	return me.ID
 }
 
+func (mea *MaintenanceEntryAttachment) GetID() uuid.UUID {
+	return mea.ID
+}
 
 func (n *Notifier) GetID() uuid.UUID {
 	return n.ID
@@ -51,8 +54,4 @@ func (n *Notifier) GetID() uuid.UUID {
 
 func (u *User) GetID() uuid.UUID {
 	return u.ID
-}
-
-func GetID(mea *MaintenanceEntryAttachment) uuid.UUID {
-	return mea.ID
 }

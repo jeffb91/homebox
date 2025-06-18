@@ -34,6 +34,16 @@ func (Attachment) Fields() []ent.Field {
 }
 
 // Edges of the Attachment.
+//func (Attachment) Edges() []ent.Edge {
+//	return []ent.Edge{
+//		edge.From("item", Item.Type).
+//			Ref("attachments").
+//			Required().
+//			Unique(),
+//	}
+//}
+
+// Edges of the Attachment.
 func (Attachment) Edges() []ent.Edge {
-	return nil
+	return nil // Geen edges meer, alles via related_type/related_id
 }

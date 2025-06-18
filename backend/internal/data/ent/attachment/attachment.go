@@ -82,6 +82,8 @@ var (
 	DefaultTitle string
 	// DefaultPath holds the default value on creation for the "path" field.
 	DefaultPath string
+	// RelatedTypeValidator is a validator for the "related_type" field. It is called by the builders before save.
+	RelatedTypeValidator func(string) error
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )

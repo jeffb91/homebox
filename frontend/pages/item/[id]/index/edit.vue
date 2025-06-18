@@ -71,6 +71,7 @@
       item.value = {
         ...nullableItem.value,
         labelIds: nullableItem.value.labels.map(l => l.id) ?? [],
+
       };
     }
   });
@@ -323,7 +324,7 @@
       return;
     }
 
-    const { data, error } = await api.items.attachments.add(itemId.value, files[0], files[0].name, type);
+    const { data, error } = await api.attachments.addAttachment(itemId.value, files[0], files[0].name, type);
 
     if (error) {
       toast.error(t("items.toast.failed_upload_attachment"));
@@ -344,7 +345,7 @@
       return;
     }
 
-    const { error } = await api.items.attachments.delete(itemId.value, attachmentId);
+    const { error } = await api.attachments.deleteAttachment(itemId.value, attachmentId);
 
     if (error) {
       toast.error(t("items.toast.failed_delete_attachment"));
@@ -383,7 +384,7 @@
 
   async function updateAttachment() {
     editState.loading = true;
-    const { error, data } = await api.items.attachments.update(itemId.value, editState.id, {
+    const { error, data } = await api.attachments.updateAttachment(itemId.value, editState.id, {
       title: editState.title,
       type: editState.type,
       primary: editState.primary,
