@@ -1,5 +1,5 @@
 import { BaseAPI, route } from "../base";
-import type { ItemSummary } from "../types/data-contracts";
+import type { ItemSummary } from "../types/data-contracts-old";
 import type { PaginationResult } from "../types/non-generated";
 
 export class AssetsApi extends BaseAPI {

@@ -322,30 +322,6 @@ var (
 			},
 		},
 	}
-	// MaintenanceEntryAttachmentsColumns holds the columns for the "maintenance_entry_attachments" table.
-	MaintenanceEntryAttachmentsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeUUID},
-		{Name: "filename", Type: field.TypeString},
-		{Name: "filepath", Type: field.TypeString},
-		{Name: "content_type", Type: field.TypeString, Nullable: true},
-		{Name: "uploaded_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "maintenance_entry_id", Type: field.TypeUUID},
-	}
-	// MaintenanceEntryAttachmentsTable holds the schema information for the "maintenance_entry_attachments" table.
-	MaintenanceEntryAttachmentsTable = &schema.Table{
-		Name:       "maintenance_entry_attachments",
-		Columns:    MaintenanceEntryAttachmentsColumns,
-		PrimaryKey: []*schema.Column{MaintenanceEntryAttachmentsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "maintenance_entry_attachments_maintenance_entries_attachments",
-				Columns:    []*schema.Column{MaintenanceEntryAttachmentsColumns[6]},
-				RefColumns: []*schema.Column{MaintenanceEntriesColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-		},
-	}
 	// NotifiersColumns holds the columns for the "notifiers" table.
 	NotifiersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -464,7 +440,6 @@ var (
 		LabelsTable,
 		LocationsTable,
 		MaintenanceEntriesTable,
-		MaintenanceEntryAttachmentsTable,
 		NotifiersTable,
 		UsersTable,
 		LabelItemsTable,
@@ -484,7 +459,6 @@ func init() {
 	LocationsTable.ForeignKeys[0].RefTable = GroupsTable
 	LocationsTable.ForeignKeys[1].RefTable = LocationsTable
 	MaintenanceEntriesTable.ForeignKeys[0].RefTable = ItemsTable
-	MaintenanceEntryAttachmentsTable.ForeignKeys[0].RefTable = MaintenanceEntriesTable
 	NotifiersTable.ForeignKeys[0].RefTable = GroupsTable
 	NotifiersTable.ForeignKeys[1].RefTable = UsersTable
 	UsersTable.ForeignKeys[0].RefTable = GroupsTable

@@ -1,15 +1,15 @@
-import { BaseAPI, route } from "../base";
-import type { ItemOut } from "../types/data-contracts";
+import { BaseAPI } from "../base";
+import type { Attachment } from "../types/data-contracts-old";
 import type { AttachmentTypes } from "../types/non-generated";
-import type { Requests } from "~~/lib/requests";
 
 export class AttachmentsAPI extends BaseAPI {
   // Haal attachments op voor een generiek relatedType/relatedId
-  getAttachments(relatedType: string, relatedId: string) {
-    return this.http.get<ItemOut>({
-      url: route(`/attachments`, { relatedType, relatedId }),
-    });
-  }
+getAttachments(relatedType: string, relatedId: string) {
+  return this.http.get<Attachment[]>({
+    url: `/attachments?related_type=${relatedType}&related_id=${relatedId}`,
+  });
+}
+
 
   addAttachment(
     relatedType: string,
@@ -21,25 +21,27 @@ export class AttachmentsAPI extends BaseAPI {
   ) {
     const formData = new FormData();
     formData.append("file", file);
-    if (type) formData.append("type", type);
     formData.append("name", filename);
+    formData.append("related_type", relatedType);
+    formData.append("related_id", relatedId);
+    if (type) formData.append("type", type);
     if (primary !== undefined) formData.append("primary", primary.toString());
 
-    return this.http.post<FormData, ItemOut>({
-      url: route(`/attachments`, { relatedType, relatedId }),
+    return this.http.post<FormData, Attachment>({
+      url: `/attachments`,
       data: formData,
     });
   }
 
   deleteAttachment(attachmentId: string) {
     return this.http.delete<void>({
-      url: route(`/attachments/${attachmentId}`),
+      url: `/attachments/${attachmentId}`,
     });
   }
 
   updateAttachment(attachmentId: string, data: Partial<{ title?: string; primary?: boolean; type?: AttachmentTypes }>) {
-    return this.http.put<typeof data, ItemOut>({
-      url: route(`/attachments/${attachmentId}`),
+    return this.http.put<typeof data, Attachment>({
+      url: `/attachments/${attachmentId}`,
       body: data,
     });
   }

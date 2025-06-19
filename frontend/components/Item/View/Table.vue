@@ -152,7 +152,7 @@
 
 <script setup lang="ts">
   import type { TableData, TableHeaderType } from "./Table.types";
-  import type { ItemSummary } from "~~/lib/api/types/data-contracts";
+  import type { ItemSummary } from "~/lib/api/types/data-contracts-old";
   import MdiArrowDown from "~icons/mdi/arrow-down";
   import MdiArrowUp from "~icons/mdi/arrow-up";
   import MdiCheck from "~icons/mdi/check";

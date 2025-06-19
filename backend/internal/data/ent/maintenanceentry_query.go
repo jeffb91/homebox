@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -15,19 +14,17 @@ import (
 	"github.com/google/uuid"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/item"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/maintenanceentry"
-	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/maintenanceentryattachment"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/predicate"
 )
 
 // MaintenanceEntryQuery is the builder for querying MaintenanceEntry entities.
 type MaintenanceEntryQuery struct {
 	config
-	ctx             *QueryContext
-	order           []maintenanceentry.OrderOption
-	inters          []Interceptor
-	predicates      []predicate.MaintenanceEntry
-	withItem        *ItemQuery
-	withAttachments *MaintenanceEntryAttachmentQuery
+	ctx        *QueryContext
+	order      []maintenanceentry.OrderOption
+	inters     []Interceptor
+	predicates []predicate.MaintenanceEntry
+	withItem   *ItemQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -79,28 +76,6 @@ func (meq *MaintenanceEntryQuery) QueryItem() *ItemQuery {
 			sqlgraph.From(maintenanceentry.Table, maintenanceentry.FieldID, selector),
 			sqlgraph.To(item.Table, item.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, maintenanceentry.ItemTable, maintenanceentry.ItemColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(meq.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
-// QueryAttachments chains the current query on the "attachments" edge.
-func (meq *MaintenanceEntryQuery) QueryAttachments() *MaintenanceEntryAttachmentQuery {
-	query := (&MaintenanceEntryAttachmentClient{config: meq.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := meq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := meq.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(maintenanceentry.Table, maintenanceentry.FieldID, selector),
-			sqlgraph.To(maintenanceentryattachment.Table, maintenanceentryattachment.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, maintenanceentry.AttachmentsTable, maintenanceentry.AttachmentsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(meq.driver.Dialect(), step)
 		return fromU, nil
@@ -295,13 +270,12 @@ func (meq *MaintenanceEntryQuery) Clone() *MaintenanceEntryQuery {
 		return nil
 	}
 	return &MaintenanceEntryQuery{
-		config:          meq.config,
-		ctx:             meq.ctx.Clone(),
-		order:           append([]maintenanceentry.OrderOption{}, meq.order...),
-		inters:          append([]Interceptor{}, meq.inters...),
-		predicates:      append([]predicate.MaintenanceEntry{}, meq.predicates...),
-		withItem:        meq.withItem.Clone(),
-		withAttachments: meq.withAttachments.Clone(),
+		config:     meq.config,
+		ctx:        meq.ctx.Clone(),
+		order:      append([]maintenanceentry.OrderOption{}, meq.order...),
+		inters:     append([]Interceptor{}, meq.inters...),
+		predicates: append([]predicate.MaintenanceEntry{}, meq.predicates...),
+		withItem:   meq.withItem.Clone(),
 		// clone intermediate query.
 		sql:  meq.sql.Clone(),
 		path: meq.path,
@@ -316,17 +290,6 @@ func (meq *MaintenanceEntryQuery) WithItem(opts ...func(*ItemQuery)) *Maintenanc
 		opt(query)
 	}
 	meq.withItem = query
-	return meq
-}
-
-// WithAttachments tells the query-builder to eager-load the nodes that are connected to
-// the "attachments" edge. The optional arguments are used to configure the query builder of the edge.
-func (meq *MaintenanceEntryQuery) WithAttachments(opts ...func(*MaintenanceEntryAttachmentQuery)) *MaintenanceEntryQuery {
-	query := (&MaintenanceEntryAttachmentClient{config: meq.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	meq.withAttachments = query
 	return meq
 }
 
@@ -408,9 +371,8 @@ func (meq *MaintenanceEntryQuery) sqlAll(ctx context.Context, hooks ...queryHook
 	var (
 		nodes       = []*MaintenanceEntry{}
 		_spec       = meq.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [1]bool{
 			meq.withItem != nil,
-			meq.withAttachments != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -434,15 +396,6 @@ func (meq *MaintenanceEntryQuery) sqlAll(ctx context.Context, hooks ...queryHook
 	if query := meq.withItem; query != nil {
 		if err := meq.loadItem(ctx, query, nodes, nil,
 			func(n *MaintenanceEntry, e *Item) { n.Edges.Item = e }); err != nil {
-			return nil, err
-		}
-	}
-	if query := meq.withAttachments; query != nil {
-		if err := meq.loadAttachments(ctx, query, nodes,
-			func(n *MaintenanceEntry) { n.Edges.Attachments = []*MaintenanceEntryAttachment{} },
-			func(n *MaintenanceEntry, e *MaintenanceEntryAttachment) {
-				n.Edges.Attachments = append(n.Edges.Attachments, e)
-			}); err != nil {
 			return nil, err
 		}
 	}
@@ -475,36 +428,6 @@ func (meq *MaintenanceEntryQuery) loadItem(ctx context.Context, query *ItemQuery
 		for i := range nodes {
 			assign(nodes[i], n)
 		}
-	}
-	return nil
-}
-func (meq *MaintenanceEntryQuery) loadAttachments(ctx context.Context, query *MaintenanceEntryAttachmentQuery, nodes []*MaintenanceEntry, init func(*MaintenanceEntry), assign func(*MaintenanceEntry, *MaintenanceEntryAttachment)) error {
-	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[uuid.UUID]*MaintenanceEntry)
-	for i := range nodes {
-		fks = append(fks, nodes[i].ID)
-		nodeids[nodes[i].ID] = nodes[i]
-		if init != nil {
-			init(nodes[i])
-		}
-	}
-	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(maintenanceentryattachment.FieldMaintenanceEntryID)
-	}
-	query.Where(predicate.MaintenanceEntryAttachment(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(maintenanceentry.AttachmentsColumn), fks...))
-	}))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		fk := n.MaintenanceEntryID
-		node, ok := nodeids[fk]
-		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "maintenance_entry_id" returned %v for node %v`, fk, n.ID)
-		}
-		assign(node, n)
 	}
 	return nil
 }

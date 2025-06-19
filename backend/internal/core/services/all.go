@@ -10,6 +10,7 @@ type AllServices struct {
 	User              *UserService
 	Group             *GroupService
 	Items             *ItemService
+	Attachments       *AttachmentService
 	BackgroundService *BackgroundService
 	Currencies        *currencies.CurrencyRegistry
 }
@@ -61,6 +62,7 @@ func New(repos *repo.AllRepos, opts ...OptionsFunc) *AllServices {
 			repo:                 repos,
 			autoIncrementAssetID: options.autoIncrementAssetID,
 		},
+		Attachments:       &AttachmentService{repo: repos},
 		BackgroundService: &BackgroundService{repos, Latest{}},
 		Currencies:        currencies.NewCurrencyService(options.currencies),
 	}

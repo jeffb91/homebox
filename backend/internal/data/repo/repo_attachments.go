@@ -14,6 +14,11 @@ import (
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/attachment"
 )
 
+type AttachmentRepo struct {
+	db  *ent.Client
+	dir string
+}
+
 type (
 	Attachment struct {
 		ID          uuid.UUID `json:"id"`
@@ -47,8 +52,29 @@ type (
    Please ensure AttachmentRepo is defined only once, e.g., in repo_item_attachments.go. */
 
 // Helper om het pad te bepalen waar het bestand wordt opgeslagen
+//
+//	func (r *AttachmentRepo) path(relatedType string, relatedID uuid.UUID, filename string) string {
+//		return filepath.Join(r.dir, relatedType, relatedID.String(), "documents", filename)
+//	}
 func (r *AttachmentRepo) path(relatedType string, relatedID uuid.UUID, filename string) string {
-	return filepath.Join(r.dir, relatedType, relatedID.String(), "documents", filename)
+	baseDir := filepath.Join(r.dir, "attachments", fmt.Sprintf("item-%s", relatedID.String()))
+	var subDir string
+
+	switch relatedType {
+	case "documents":
+		subDir = "documents"
+	case "maintenance":
+		subDir = "maintenance"
+	case "issues":
+		subDir = "issues"
+	default:
+		subDir = "documents"
+	}
+
+	// Bestandsnaam prefixen met type en id voor uniekheid
+	prefixedFilename := fmt.Sprintf("%s-%s", relatedType, filename)
+
+	return filepath.Join(baseDir, subDir, prefixedFilename)
 }
 
 // Create een attachment en sla het bestand op
@@ -63,6 +89,7 @@ func (r *AttachmentRepo) Create(ctx context.Context, input AttachmentCreate) (*e
 	// Genereer een unieke bestandsnaam (bijv. uuid + extensie)
 	filename := fmt.Sprintf("%s_%s", uuid.New().String(), input.Title)
 	filePath := r.path(input.RelatedType, input.RelatedID, filename)
+	//filePath := r.path("maintenance", itemID, "remcontrole.pdf")
 
 	// Maak de directory aan als die nog niet bestaat
 	if err := os.MkdirAll(filepath.Dir(filePath), 0755); err != nil {

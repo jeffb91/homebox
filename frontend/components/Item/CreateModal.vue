@@ -146,7 +146,7 @@
   import BaseModal from "@/components/App/CreateModal.vue";
   import { Label } from "@/components/ui/label";
   import { Input } from "@/components/ui/input";
-  import type { ItemCreate, LocationOut } from "~~/lib/api/types/data-contracts";
+  import type { ItemCreate, LocationOut } from "~/lib/api/types/data-contracts-old";
   import { useLabelStore } from "~~/stores/labels";
   import { useLocationStore } from "~~/stores/locations";
   import MdiPackageVariant from "~icons/mdi/package-variant";

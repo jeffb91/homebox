@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import { useI18n } from "vue-i18n";
-  import type { MaintenanceEntryWithDetails } from "~~/lib/api/types/data-contracts";
-  import { MaintenanceFilterStatus } from "~~/lib/api/types/data-contracts";
+  import type { MaintenanceEntryWithDetails } from "~/lib/api/types/data-contracts-old";
+  import { MaintenanceFilterStatus } from "~/lib/api/types/data-contracts-old";
   import type { StatsFormat } from "~~/components/global/StatCard/types";
   import MdiCheck from "~icons/mdi/check";
   import MdiDelete from "~icons/mdi/delete";

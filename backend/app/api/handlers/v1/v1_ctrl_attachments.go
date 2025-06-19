@@ -60,7 +60,7 @@ func (ctrl *V1Controller) HandleAttachmentCreate() errchain.HandlerFunc {
 			}
 		}
 
-		attachmentName := r.FormValue("name")
+		attachmentName := filepath.Base(r.FormValue("name"))
 		if attachmentName == "" {
 			log.Debug().Msg("failed to get name from form")
 			errs = errs.Append("name", "name is required")

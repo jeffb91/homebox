@@ -35,8 +35,6 @@ const (
 	FieldMeasurement = "measurement"
 	// EdgeItem holds the string denoting the item edge name in mutations.
 	EdgeItem = "item"
-	// EdgeAttachments holds the string denoting the attachments edge name in mutations.
-	EdgeAttachments = "attachments"
 	// Table holds the table name of the maintenanceentry in the database.
 	Table = "maintenance_entries"
 	// ItemTable is the table that holds the item relation/edge.
@@ -46,13 +44,6 @@ const (
 	ItemInverseTable = "items"
 	// ItemColumn is the table column denoting the item relation/edge.
 	ItemColumn = "item_id"
-	// AttachmentsTable is the table that holds the attachments relation/edge.
-	AttachmentsTable = "maintenance_entry_attachments"
-	// AttachmentsInverseTable is the table name for the MaintenanceEntryAttachment entity.
-	// It exists in this package in order to avoid circular dependency with the "maintenanceentryattachment" package.
-	AttachmentsInverseTable = "maintenance_entry_attachments"
-	// AttachmentsColumn is the table column denoting the attachments relation/edge.
-	AttachmentsColumn = "maintenance_entry_id"
 )
 
 // Columns holds all SQL columns for maintenanceentry fields.
@@ -155,31 +146,10 @@ func ByItemField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newItemStep(), sql.OrderByField(field, opts...))
 	}
 }
-
-// ByAttachmentsCount orders the results by attachments count.
-func ByAttachmentsCount(opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newAttachmentsStep(), opts...)
-	}
-}
-
-// ByAttachments orders the results by attachments terms.
-func ByAttachments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newAttachmentsStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
-}
 func newItemStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(ItemInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, ItemTable, ItemColumn),
-	)
-}
-func newAttachmentsStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(AttachmentsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, AttachmentsTable, AttachmentsColumn),
 	)
 }

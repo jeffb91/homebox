@@ -20,6 +20,10 @@ func TestItemService_AddAttachment(t *testing.T) {
 		filepath: temp,
 	}
 
+	attachmentSvc := &AttachmentService{
+		repo: tRepos, // of wat de AttachmentService constructor vereist
+	}
+
 	loc, err := tRepos.Locations.Create(context.Background(), tGroup.ID, repo.LocationCreate{
 		Description: "test",
 		Name:        "test",
@@ -45,18 +49,36 @@ func TestItemService_AddAttachment(t *testing.T) {
 	reader := strings.NewReader(contents)
 
 	// Setup
-	afterAttachment, err := svc.AttachmentAdd(tCtx, itm.ID, "testfile.txt", "attachment", false, reader)
+	//afterAttachment, err := attachmentSvc.AttachmentAdd(tCtx, itm.ID, "testfile.txt", "attachment", false, reader)
+	attachment, err := attachmentSvc.AttachmentAdd(tCtx, repo.AttachmentCreate{
+		RelatedType: "item", // of wat je voor items gebruikt
+		RelatedID:   itm.ID,
+		Title:       "testfile.txt",
+		Type:        "attachment",
+		File:        reader,
+		Primary:     false,
+	})
 	require.NoError(t, err)
-	assert.NotNil(t, afterAttachment)
+	//assert.NotNil(t, afterAttachment)
+	assert.NotNil(t, attachment)
 
 	// Check that the file exists
-	storedPath := afterAttachment.Attachments[0].Path
+	//storedPath := afterAttachment.Attachments[0].Path
+	storedPath := attachment.Path
 
 	// {root}/{group}/{item}/{attachment}
-	assert.Equal(t, path.Join(temp, "homebox", tGroup.ID.String(), "documents"), path.Dir(storedPath))
+	//assert.Equal(t, path.Join(temp, "homebox", tGroup.ID.String(), "documents"), path.Dir(storedPath))
+	expectedDir := path.Join(temp, "item", itm.ID.String(), "documents")
+	assert.Equal(t, expectedDir, path.Dir(storedPath))
 
 	// Check that the file contents are correct
 	bts, err := os.ReadFile(storedPath)
 	require.NoError(t, err)
 	assert.Equal(t, contents, string(bts))
+
+	// Cleanup - verwijder het attachment
+	t.Cleanup(func() {
+		err := tRepos.Attachments.Delete(context.Background(), attachment.ID)
+		require.NoError(t, err)
+	})
 }

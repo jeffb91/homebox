@@ -13,7 +13,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/item"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/maintenanceentry"
-	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/maintenanceentryattachment"
 )
 
 // MaintenanceEntryCreate is the builder for creating a MaintenanceEntry entity.
@@ -150,21 +149,6 @@ func (mec *MaintenanceEntryCreate) SetNillableID(u *uuid.UUID) *MaintenanceEntry
 // SetItem sets the "item" edge to the Item entity.
 func (mec *MaintenanceEntryCreate) SetItem(i *Item) *MaintenanceEntryCreate {
 	return mec.SetItemID(i.ID)
-}
-
-// AddAttachmentIDs adds the "attachments" edge to the MaintenanceEntryAttachment entity by IDs.
-func (mec *MaintenanceEntryCreate) AddAttachmentIDs(ids ...uuid.UUID) *MaintenanceEntryCreate {
-	mec.mutation.AddAttachmentIDs(ids...)
-	return mec
-}
-
-// AddAttachments adds the "attachments" edges to the MaintenanceEntryAttachment entity.
-func (mec *MaintenanceEntryCreate) AddAttachments(m ...*MaintenanceEntryAttachment) *MaintenanceEntryCreate {
-	ids := make([]uuid.UUID, len(m))
-	for i := range m {
-		ids[i] = m[i].ID
-	}
-	return mec.AddAttachmentIDs(ids...)
 }
 
 // Mutation returns the MaintenanceEntryMutation object of the builder.
@@ -332,22 +316,6 @@ func (mec *MaintenanceEntryCreate) createSpec() (*MaintenanceEntry, *sqlgraph.Cr
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.ItemID = nodes[0]
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := mec.mutation.AttachmentsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   maintenanceentry.AttachmentsTable,
-			Columns: []string{maintenanceentry.AttachmentsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(maintenanceentryattachment.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

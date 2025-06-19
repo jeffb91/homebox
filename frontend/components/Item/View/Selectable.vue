@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import type { ViewType } from "~~/composables/use-preferences";
-  import type { ItemSummary } from "~~/lib/api/types/data-contracts";
+  import type { ItemSummary } from "~/lib/api/types/data-contracts-old";
   import MdiCardTextOutline from "~icons/mdi/card-text-outline";
   import MdiTable from "~icons/mdi/table";
   import { Button, ButtonGroup } from "@/components/ui/button";

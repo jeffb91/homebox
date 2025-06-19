@@ -29,7 +29,7 @@
 </template>
 
 <script lang="ts" setup>
-  import type { LocationOut, LocationOutCount, LocationSummary } from "~~/lib/api/types/data-contracts";
+  import type { LocationOut, LocationOutCount, LocationSummary } from "~/lib/api/types/data-contracts-old";
   import MdiArrowUp from "~icons/mdi/arrow-down";
   import MdiMapMarkerOutline from "~icons/mdi/map-marker-outline";
   import { Card } from "@/components/ui/card";

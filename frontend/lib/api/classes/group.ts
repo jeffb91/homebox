@@ -5,7 +5,7 @@ import type {
   GroupInvitation,
   GroupInvitationCreate,
   GroupUpdate,
-} from "../types/data-contracts";
+} from "../types/data-contracts-old";
 
 export class GroupApi extends BaseAPI {
   createInvitation(data: GroupInvitationCreate) {

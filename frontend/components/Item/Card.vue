@@ -55,7 +55,7 @@
 </template>
 
 <script setup lang="ts">
-  import type { ItemOut, ItemSummary } from "~~/lib/api/types/data-contracts";
+  import type { ItemOut, ItemSummary } from "~/lib/api/types/data-contracts-old";
   import MdiShieldCheck from "~icons/mdi/shield-check";
   import MdiArchive from "~icons/mdi/archive";
   import { Badge } from "@/components/ui/badge";

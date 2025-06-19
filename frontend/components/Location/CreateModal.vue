@@ -34,7 +34,7 @@
   import { toast } from "@/components/ui/sonner";
   import { Button, ButtonGroup } from "~/components/ui/button";
   import BaseModal from "@/components/App/CreateModal.vue";
-  import type { LocationSummary } from "~~/lib/api/types/data-contracts";
+  import type { LocationSummary } from "~/lib/api/types/data-contracts-old";
   import { useDialog, useDialogHotkey } from "~/components/ui/dialog-provider";
 
   const { t } = useI18n();

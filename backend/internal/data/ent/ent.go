@@ -22,7 +22,6 @@ import (
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/label"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/location"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/maintenanceentry"
-	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/maintenanceentryattachment"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/notifier"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/user"
 )
@@ -85,19 +84,18 @@ var (
 func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			attachment.Table:                 attachment.ValidColumn,
-			authroles.Table:                  authroles.ValidColumn,
-			authtokens.Table:                 authtokens.ValidColumn,
-			group.Table:                      group.ValidColumn,
-			groupinvitationtoken.Table:       groupinvitationtoken.ValidColumn,
-			item.Table:                       item.ValidColumn,
-			itemfield.Table:                  itemfield.ValidColumn,
-			label.Table:                      label.ValidColumn,
-			location.Table:                   location.ValidColumn,
-			maintenanceentry.Table:           maintenanceentry.ValidColumn,
-			maintenanceentryattachment.Table: maintenanceentryattachment.ValidColumn,
-			notifier.Table:                   notifier.ValidColumn,
-			user.Table:                       user.ValidColumn,
+			attachment.Table:           attachment.ValidColumn,
+			authroles.Table:            authroles.ValidColumn,
+			authtokens.Table:           authtokens.ValidColumn,
+			group.Table:                group.ValidColumn,
+			groupinvitationtoken.Table: groupinvitationtoken.ValidColumn,
+			item.Table:                 item.ValidColumn,
+			itemfield.Table:            itemfield.ValidColumn,
+			label.Table:                label.ValidColumn,
+			location.Table:             location.ValidColumn,
+			maintenanceentry.Table:     maintenanceentry.ValidColumn,
+			notifier.Table:             notifier.ValidColumn,
+			user.Table:                 user.ValidColumn,
 		})
 	})
 	return columnCheck(table, column)

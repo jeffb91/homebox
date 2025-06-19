@@ -10,7 +10,7 @@ import type {
   MaintenanceEntry,
   MaintenanceEntryCreate,
   MaintenanceEntryWithDetails,
-} from "../types/data-contracts";
+} from "../types/data-contracts-old";
 import type { AttachmentTypes, ItemSummaryPaginationResult } from "../types/non-generated";
 import type { MaintenanceFilters } from "./maintenance";
 import type { Requests } from "~~/lib/requests";

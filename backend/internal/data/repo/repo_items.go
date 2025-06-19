@@ -19,8 +19,9 @@ import (
 )
 
 type ItemsRepository struct {
-	db  *ent.Client
-	bus *eventbus.EventBus
+	db          *ent.Client
+	bus         *eventbus.EventBus
+	Attachments *AttachmentRepo
 }
 
 type (
@@ -172,8 +173,8 @@ type (
 		// Extras
 		Notes string `json:"notes"`
 
-		Attachments []ItemAttachment `json:"attachments"`
-		Fields      []ItemField      `json:"fields"`
+		Attachments []Attachment `json:"attachments"`
+		Fields      []ItemField  `json:"fields"`
 	}
 )
 
@@ -229,10 +230,10 @@ func mapItemSummary(item *ent.Item) ItemSummary {
 	}
 }
 
-var (
-	mapItemOutErr  = mapTErrFunc(mapItemOut)
-	mapItemsOutErr = mapTEachErrFunc(mapItemOut)
-)
+//var (
+//	mapItemOutErr  = mapTErrFunc(mapItemOut)
+//	mapItemsOutErr = mapTEachErrFunc(mapItemOut)
+//)
 
 func mapFields(fields []*ent.ItemField) []ItemField {
 	result := make([]ItemField, len(fields))
@@ -250,10 +251,31 @@ func mapFields(fields []*ent.ItemField) []ItemField {
 	return result
 }
 
-func mapItemOut(item *ent.Item) ItemOut {
-	var attachments []ItemAttachment
-	if item.Edges.Attachments != nil {
-		attachments = mapEach(item.Edges.Attachments, ToItemAttachment)
+// func mapItemOut(item *ent.Item) ItemOut {
+func mapItemOut(ctx context.Context, attachmentsRepo *AttachmentRepo, item *ent.Item) (ItemOut, error) {
+
+	//var attachments []Attachment
+	//if item.Edges.Attachments != nil {
+	//	attachments = mapEach(item.Edges.Attachments, Attachment)
+	//}
+
+	attList, err := attachmentsRepo.ListByRelated(ctx, "items", item.ID)
+
+	if err != nil {
+		return ItemOut{}, err
+	}
+
+	attachments := make([]Attachment, len(attList))
+	for i, a := range attList {
+		attachments[i] = Attachment{
+			ID:        a.ID,
+			CreatedAt: a.CreatedAt,
+			UpdatedAt: a.UpdatedAt,
+			Type:      a.Type.String(),
+			Primary:   a.Primary,
+			Path:      a.Path,
+			Title:     a.Title,
+		}
 	}
 
 	var fields []ItemField
@@ -295,7 +317,7 @@ func mapItemOut(item *ent.Item) ItemOut {
 		Notes:       item.Notes,
 		Attachments: attachments,
 		Fields:      fields,
-	}
+	}, nil
 }
 
 func (e *ItemsRepository) publishMutationEvent(gid uuid.UUID) {
@@ -307,15 +329,21 @@ func (e *ItemsRepository) publishMutationEvent(gid uuid.UUID) {
 func (e *ItemsRepository) getOne(ctx context.Context, where ...predicate.Item) (ItemOut, error) {
 	q := e.db.Item.Query().Where(where...)
 
-	return mapItemOutErr(q.
-		WithFields().
-		WithLabel().
-		WithLocation().
-		WithGroup().
-		WithParent().
-		WithAttachments().
-		Only(ctx),
-	)
+	//return mapItemOutErr(q.
+	entItem, err := q. // fix
+				WithFields().
+				WithLabel().
+				WithLocation().
+				WithGroup().
+				WithParent().
+				WithAttachments().
+				Only(ctx)
+	if err != nil {
+		return ItemOut{}, err
+	}
+
+	return mapItemOut(ctx, e.Attachments, entItem)
+	//return mapItemOut(ctx, &AttachmentRepo{db: e.db, dir: "<je-bestandspad>"}, entItem)
 }
 
 // GetOne returns a single item by ID. If the item does not exist, an error is returned.
@@ -532,13 +560,36 @@ func (e *ItemsRepository) QueryByAssetID(ctx context.Context, gid uuid.UUID, ass
 }
 
 // GetAll returns all the items in the database with the Labels and Locations eager loaded.
+//
+//	func (e *ItemsRepository) GetAll(ctx context.Context, gid uuid.UUID) ([]ItemOut, error) {
+//		return mapItemsOutErr(e.db.Item.Query().
+//			Where(item.HasGroupWith(group.ID(gid))).
+//			WithLabel().
+//			WithLocation().
+//			WithFields().
+//			All(ctx))
+//	}
 func (e *ItemsRepository) GetAll(ctx context.Context, gid uuid.UUID) ([]ItemOut, error) {
-	return mapItemsOutErr(e.db.Item.Query().
+	entItems, err := e.db.Item.Query().
 		Where(item.HasGroupWith(group.ID(gid))).
 		WithLabel().
 		WithLocation().
 		WithFields().
-		All(ctx))
+		All(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	out := make([]ItemOut, 0, len(entItems))
+	for _, entItem := range entItems {
+		mapped, err := mapItemOut(ctx, &AttachmentRepo{db: e.db, dir: "<je-bestandspad>"}, entItem)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, mapped)
+	}
+
+	return out, nil
 }
 
 func (e *ItemsRepository) GetAllZeroAssetID(ctx context.Context, gid uuid.UUID) ([]ItemSummary, error) {

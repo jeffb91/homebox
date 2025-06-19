@@ -35,7 +35,6 @@ func (MaintenanceEntry) Fields() []ent.Field {
 			Default(0.0),
 		field.String("measurement").
 			Optional(),
-
 	}
 }
 
@@ -47,9 +46,5 @@ func (MaintenanceEntry) Edges() []ent.Edge {
 			Ref("maintenance_entries").
 			Required().
 			Unique(),
-		
-		edge.To("attachments", MaintenanceEntryAttachment.Type),
 	}
 }
-
-
