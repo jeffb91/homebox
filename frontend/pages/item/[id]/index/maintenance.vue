@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import type { ItemOut } from "~/lib/api/types/data-contracts-old";
+  import type { ItemOut } from "~/lib/api/types/data-contracts";
 
   const props = defineProps<{
     item: ItemOut;

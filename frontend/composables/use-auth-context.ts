@@ -1,6 +1,6 @@
 import type { CookieRef } from "nuxt/app";
 import type { PublicApi } from "~~/lib/api/public";
-import type { UserOut } from "~/lib/api/types/data-contracts-old";
+import type { UserOut } from "~/lib/api/types/data-contracts";
 import type { UserClient } from "~~/lib/api/user";
 
 export interface IAuthContext {

@@ -39,7 +39,7 @@
 </template>
 
 <script setup lang="ts">
-  import type { MaintenanceEntryAttachment } from "~/lib/api/types/data-contracts-old";
+  import type { MaintenanceEntryAttachment } from "~/lib/api/types/data-contracts";
   import MdiPaperclip from "~icons/mdi/paperclip";
   import MdiDownload from "~icons/mdi/download";
   import MdiOpenInNew from "~icons/mdi/open-in-new";

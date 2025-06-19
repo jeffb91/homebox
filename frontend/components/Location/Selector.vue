@@ -53,7 +53,7 @@
   import { Label } from "~/components/ui/label";
   import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
   import { cn } from "~/lib/utils";
-  import type { LocationSummary } from "~/lib/api/types/data-contracts-old";
+  import type { LocationSummary } from "~/lib/api/types/data-contracts";
   import { useFlatLocations } from "~~/composables/use-location-helpers";
 
   type Props = {

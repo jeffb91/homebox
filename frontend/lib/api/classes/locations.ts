@@ -1,5 +1,5 @@
 import { BaseAPI, route } from "../base";
-import type { LocationOutCount, LocationCreate, LocationOut, LocationUpdate, TreeItem } from "../types/data-contracts-old";
+import type { LocationOutCount, LocationCreate, LocationOut, LocationUpdate, TreeItem } from "../types/data-contracts";
 
 export type LocationsQuery = {
   filterChildren: boolean;

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import type { LabelOut, LabelSummary } from "~/lib/api/types/data-contracts-old";
+  import type { LabelOut, LabelSummary } from "~/lib/api/types/data-contracts";
   import MdiArrowUp from "~icons/mdi/arrow-up";
   import MdiTagOutline from "~icons/mdi/tag-outline";
 

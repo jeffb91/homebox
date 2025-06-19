@@ -79,7 +79,7 @@
     TagsInputItemDelete,
     TagsInputItemText,
   } from "@/components/ui/tags-input";
-  import type { LabelOut } from "~/lib/api/types/data-contracts-old";
+  import type { LabelOut } from "~/lib/api/types/data-contracts";
 
   const { t } = useI18n();
 

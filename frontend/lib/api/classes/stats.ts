@@ -1,5 +1,5 @@
 import { BaseAPI, route } from "../base";
-import type { GroupStatistics, TotalsByOrganizer, ValueOverTime } from "../types/data-contracts-old";
+import type { GroupStatistics, TotalsByOrganizer, ValueOverTime } from "../types/data-contracts";
 
 function YYYY_MM_DD(date?: Date): string {
   if (!date) {

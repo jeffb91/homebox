@@ -6,7 +6,7 @@
 
   import { ButtonGroup, Button } from "@/components/ui/button";
   import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-  import type { TreeItem } from "~/lib/api/types/data-contracts-old";
+  import type { TreeItem } from "~/lib/api/types/data-contracts";
 
   const { t } = useI18n();
 

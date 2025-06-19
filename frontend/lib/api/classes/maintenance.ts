@@ -4,7 +4,7 @@ import type {
   MaintenanceEntryWithDetails,
   MaintenanceEntryUpdate,
   MaintenanceFilterStatus,
-} from "../types/data-contracts-old";
+} from "../types/data-contracts";
 import type { AttachmentTypes } from "../types/non-generated";
 import type { Requests } from "~~/lib/requests";
 import { AttachmentsAPI } from "./attachments";

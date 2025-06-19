@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import { useI18n } from "vue-i18n";
   import { toast } from "@/components/ui/sonner";
-  import type { LocationSummary, LocationUpdate } from "~/lib/api/types/data-contracts-old";
+  import type { LocationSummary, LocationUpdate } from "~/lib/api/types/data-contracts";
   import { useLocationStore } from "~~/stores/locations";
   import MdiPackageVariant from "~icons/mdi/package-variant";
   import MdiPencil from "~icons/mdi/pencil";

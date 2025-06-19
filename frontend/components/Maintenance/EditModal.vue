@@ -154,7 +154,7 @@
 <script setup lang="ts">
   import { useI18n } from "vue-i18n";
   import { toast } from "@/components/ui/sonner";
-  import type {MaintenanceEntry,MaintenanceEntryAttachment, MaintenanceEntryWithDetails } from "~/lib/api/types/data-contracts-old";
+  import type {MaintenanceEntry,MaintenanceEntryAttachment, MaintenanceEntryWithDetails } from "~/lib/api/types/data-contracts";
   import MdiPost from "~icons/mdi/post";
   import DatePicker from "~~/components/Form/DatePicker.vue";
   import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";

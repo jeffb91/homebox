@@ -1,5 +1,5 @@
 import { BaseAPI, route } from "./base";
-import type { APISummary, LoginForm, TokenResponse, UserRegistration } from "./types/data-contracts-old";
+import type { APISummary, LoginForm, TokenResponse, UserRegistration } from "./types/data-contracts";
 
 export type StatusResult = {
   health: boolean;

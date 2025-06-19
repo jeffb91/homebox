@@ -2,7 +2,7 @@
   import { useI18n } from "vue-i18n";
   import { toast } from "@/components/ui/sonner";
   import { Input } from "~/components/ui/input";
-  import type { ItemSummary, LabelSummary, LocationOutCount } from "~/lib/api/types/data-contracts-old";
+  import type { ItemSummary, LabelSummary, LocationOutCount } from "~/lib/api/types/data-contracts";
   import { useLabelStore } from "~~/stores/labels";
   import { useLocationStore } from "~~/stores/locations";
   import MdiLoading from "~icons/mdi/loading";

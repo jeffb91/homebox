@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import type { LabelOut } from "~/lib/api/types/data-contracts-old";
+import type { LabelOut } from "~/lib/api/types/data-contracts";
 
 export const useLabelStore = defineStore("labels", {
   state: () => ({

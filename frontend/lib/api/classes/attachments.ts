@@ -1,5 +1,5 @@
 import { BaseAPI } from "../base";
-import type { Attachment } from "../types/data-contracts-old";
+import type { Attachment } from "../types/data-contracts";
 import type { AttachmentTypes } from "../types/non-generated";
 
 export class AttachmentsAPI extends BaseAPI {

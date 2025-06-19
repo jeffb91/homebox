@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import type { LabelOut } from "../../types/data-contracts-old";
+import type { LabelOut } from "../../types/data-contracts";
 import type { UserClient } from "../../user";
 import { factories } from "../factories";
 import { sharedUserClient } from "../test-utils";
