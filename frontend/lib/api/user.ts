@@ -10,6 +10,7 @@ import { AssetsApi } from "./classes/assets";
 import { ReportsAPI } from "./classes/reports";
 import { NotifiersAPI } from "./classes/notifiers";
 import { MaintenanceAPI } from "./classes/maintenance";
+import { AttachmentsAPI } from "./classes/attachments";
 import type { Requests } from "~~/lib/requests";
 
 export class UserClient extends BaseAPI {
@@ -24,6 +25,8 @@ export class UserClient extends BaseAPI {
   assets: AssetsApi;
   reports: ReportsAPI;
   notifiers: NotifiersAPI;
+  attachments: AttachmentsAPI;
+
 
   constructor(requests: Requests, attachmentToken: string) {
     super(requests, attachmentToken);
@@ -31,7 +34,7 @@ export class UserClient extends BaseAPI {
     this.locations = new LocationsApi(requests);
     this.labels = new LabelsApi(requests);
     this.items = new ItemsApi(requests, attachmentToken);
-    this.maintenance = new MaintenanceAPI(requests);
+    this.maintenance = new MaintenanceAPI(requests,attachmentToken);
     this.group = new GroupApi(requests);
     this.user = new UserApi(requests);
     this.actions = new ActionsAPI(requests);
@@ -39,6 +42,7 @@ export class UserClient extends BaseAPI {
     this.assets = new AssetsApi(requests);
     this.reports = new ReportsAPI(requests);
     this.notifiers = new NotifiersAPI(requests);
+    this.attachments = new AttachmentsAPI(requests);
 
     Object.freeze(this);
   }

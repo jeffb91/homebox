@@ -356,7 +356,7 @@
       toast.info(t("components.item.create_modal.toast.uploading_photos", { count: form.photos.length }));
       let uploadError = false;
       for (const photo of form.photos) {
-        const { error: attachError } = await api.items.attachments.add(
+        const { error: attachError } = await api.items.attachments.addAttachment(
           data.id,
           photo.file,
           photo.photoName,

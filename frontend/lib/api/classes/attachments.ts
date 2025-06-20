@@ -1,15 +1,40 @@
 import { BaseAPI } from "../base";
 import type { Attachment } from "../types/data-contracts";
 import type { AttachmentTypes } from "../types/non-generated";
+import type { ItemAttachment } from "../types/data-contracts";
 
 export class AttachmentsAPI extends BaseAPI {
   // Haal attachments op voor een generiek relatedType/relatedId
-getAttachments(relatedType: string, relatedId: string) {
-  return this.http.get<Attachment[]>({
-    url: `/attachments?related_type=${relatedType}&related_id=${relatedId}`,
-  });
-}
+//getAttachments(relatedType: string, relatedId: string) {
+//  return this.http.get<Attachment[]>({
+//    url: `/attachments?related_type=${relatedType}&related_id=${relatedId}`,
+//  });
+//}
+//getAttachments(relatedType: string, relatedId: string): Promise<Attachment[]> {
+//  return this.http
+//    .get({
+//      url: `/attachments?related_type=${relatedType}&related_id=${relatedId}`,
+//    })
+//    .then((res) => res.data as unknown as Attachment[]);
+//}
 
+getAttachments(relatedType: string, relatedId: string): Promise<Attachment[]> {
+  return this.http
+  .get<{ items: Attachment[] }>({
+    url: `/attachments?related_type=${relatedType}&related_id=${relatedId}`,
+  })
+  //.then(res => res.data.items);
+  .then(res => {
+  console.log("getAttachments raw response:", res.data);
+
+  if (!res.data || !Array.isArray(res.data.items)) {
+    throw new Error("Unexpected attachment response");
+  }
+
+  return res.data.items;
+})
+
+}
 
   addAttachment(
     relatedType: string,
@@ -27,10 +52,11 @@ getAttachments(relatedType: string, relatedId: string) {
     if (type) formData.append("type", type);
     if (primary !== undefined) formData.append("primary", primary.toString());
 
-    return this.http.post<FormData, Attachment>({
-      url: `/attachments`,
+    return this.http.post<FormData, ItemAttachment>({
+      url: "/attachments",
       data: formData,
     });
+
   }
 
   deleteAttachment(attachmentId: string) {

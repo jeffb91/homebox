@@ -17,6 +17,7 @@
   import { Switch } from "@/components/ui/switch";
   import { Label } from "@/components/ui/label";
 
+
   const { t } = useI18n();
 
   const { openDialog, closeDialog } = useDialog();
@@ -64,6 +65,7 @@
     return data;
   });
 
+  //const item = computed(() => nullableItem.value as ItemOut);
   const item = ref<ItemOut & { labelIds: string[] }>(null as any);
 
   watchEffect(() => {
@@ -76,7 +78,7 @@
     }
   });
 
-  // const item = computed(() => nullableItem.value as ItemOut);
+
 
   onMounted(() => {
     refresh();
@@ -324,7 +326,18 @@
       return;
     }
 
-    const { data, error } = await api.attachments.addAttachment(itemId.value, files[0], files[0].name, type);
+    // 👇 Deze log helpt je te zien wat er wordt meegestuurd
+    console.log("UPLOAD", {
+      id: itemId.value,
+      file: files[0],
+      name: files[0]?.name,
+      type,
+    });
+
+    const { data, error } = await api.items.addAttachment(itemId.value, files[0], files[0].name, type ?? undefined);
+    
+    // 🔍 Debug: wat krijg je terug van de backend?
+    console.log("Received attachment response:", data);
 
     if (error) {
       toast.error(t("items.toast.failed_upload_attachment"));
@@ -333,7 +346,10 @@
 
     toast.success(t("items.toast.attachment_uploaded"));
 
-    item.value.attachments = data.attachments ?? [];
+    //item.value.attachments = data.attachments ?? [];
+    item.value.attachments = [...item.value.attachments.filter(a => a.id !== data.id), data];
+
+
   }
 
   const confirm = useConfirm();
@@ -345,7 +361,7 @@
       return;
     }
 
-    const { error } = await api.attachments.deleteAttachment(itemId.value, attachmentId);
+    const { error } = await api.items.deleteAttachment(attachmentId);
 
     if (error) {
       toast.error(t("items.toast.failed_delete_attachment"));
@@ -384,9 +400,9 @@
 
   async function updateAttachment() {
     editState.loading = true;
-    const { error, data } = await api.attachments.updateAttachment(itemId.value, editState.id, {
+    const { error, data } = await api.attachments.updateAttachment(editState.id, {  
       title: editState.title,
-      type: editState.type,
+      type: editState.type as AttachmentTypes,
       primary: editState.primary,
     });
 
@@ -395,7 +411,7 @@
       return;
     }
 
-    item.value.attachments = data.attachments;
+     item.value.attachments = item.value.attachments.filter(a => a.id !== editState.id);
 
     editState.loading = false;
     closeDialog("attachment-edit");
@@ -502,6 +518,7 @@
   onUnmounted(() => {
     window.removeEventListener("keydown", keyboardSave);
   });
+
 </script>
 
 <template>
@@ -588,7 +605,8 @@
               <div class="border-b px-4 pb-4 pt-2 sm:px-6">
                 <FormTextArea
                   v-if="field.type === 'textarea'"
-                  v-model="item[field.ref]"
+                  :model-value="item[field.ref] ?? ''"
+                  @update:model-value="val => item[field.ref] = val"
                   :label="$t(field.label)"
                   inline
                   :max-length="field.maxLength"
@@ -596,7 +614,8 @@
                 />
                 <FormTextField
                   v-else-if="field.type === 'text'"
-                  v-model="item[field.ref]"
+                  :model-value="item[field.ref] ?? ''"
+                  @update:model-value="val => item[field.ref] = val"
                   :label="$t(field.label)"
                   inline
                   type="text"

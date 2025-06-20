@@ -273,10 +273,21 @@
     entry.measurement = maintenanceEntry.measurement;
     entry.itemId = null;
 
-    const res = await api.maintenance.getAttachments(entry.id ?? "");
+    const res = await api.maintenance.getAttachments(entry.id);
     console.log("API response van getAttachments:", res);
-    //probleem hieronder is een spookprobleem in studio code -> negeren!
-    entry.attachments = res.data.attachments ?? [];
+
+    //entry.attachments = res.data.attachments ?? [];
+    entry.attachments = res.map(att => ({
+      id: att.id,
+      filename: att.title ?? "",
+      filepath: att.path ?? "", // 👈 fallback voor string
+      uploadedAt: att.created_at ?? "",
+      updatedAt: att.updated_at ?? "",
+      contentType: undefined,
+      maintenanceEntryId: att.related_id ?? "",
+      primary: att.primary ?? false,
+    }));
+
     console.log("entry.attachments na ophalen:", entry.attachments);
 
     openDialog("edit-maintenance");
@@ -368,7 +379,7 @@
       return;
     }
 
-    const { data, error } = await api.attachments.add(entry.id ?? "", files[0], files[0].name, type);
+    const { data, error } = await api.maintenance.uploadAttachment(entry.id ?? "", files[0], files[0].name, type ?? undefined);
 
     if (error) {
       toast.error(t("items.toast.failed_upload_attachment"));
@@ -378,7 +389,22 @@
 
     toast.success(t("items.toast.attachment_uploaded"));
 
-    entry.attachments = data.attachments ??[];
+    //entry.attachments = data.attachments ??[];
+    entry.attachments = [
+    ...entry.attachments,
+    {
+      id: data.id,
+      filename: data.title ?? "",
+      filepath: data.path ?? "",
+      uploadedAt: data.createdAt ?? new Date().toISOString(),
+      updatedAt: data.updatedAt ?? new Date().toISOString(),
+      contentType: undefined,
+      maintenanceEntryId: data.relatedId ?? "",
+      primary: data.primary ?? false,
+    }
+  ];
+
+
     console.log(entry.attachments);
     console.log("API response:", data);
     console.log("entry.attachments:", entry.attachments);
@@ -391,13 +417,17 @@
       return;
     }
 
-    const { error, data } = await api.attachment.deleteAttachment( attachmentId);
+    const { error, data } = await api.maintenance.deleteAttachment( attachmentId);
     if (error) {
       toast.error(t("items.toast.failed_delete_attachment"));
       return;
     }
     toast.success(t("items.toast.attachment_deleted"));
-    entry.attachments = data.attachments ?? [];
+    //entry.attachments = data.attachments ?? [];
+    //entry.attachments = [...entry.attachments, data];
+    entry.attachments = entry.attachments.filter(att => att.id !== attachmentId);
+
+
   }
 
     const editState = reactive({
@@ -431,7 +461,7 @@
     editState.loading = true;
     const { error, data } = await api.maintenance.updateAttachment(editState.id, {
       title: editState.title,
-      type: editState.type,
+      type: editState.type as AttachmentTypes,
       primary: editState.primary,
     });
 
@@ -440,7 +470,24 @@
       editState.loading = false;
       return;
     }
-    entry.attachments = data.attachments ?? [];
+    //entry.attachments = data.attachments ?? [];
+    //entry.attachments = [...entry.attachments, data];
+    if (data) {
+      entry.attachments = [
+        ...entry.attachments,
+        {
+          id: data.id,
+          filename: data.title ?? "",
+          filepath: data.path ?? "",
+          uploadedAt: data.created_at ?? new Date().toISOString(),
+          updatedAt: data.updated_at ?? new Date().toISOString(),
+          contentType: undefined,
+          maintenanceEntryId: entry.id ?? "",
+          primary: data.primary ?? false,
+        }
+      ];
+    }
+
 
     editState.loading = false;
     editState.id = "";

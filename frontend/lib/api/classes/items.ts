@@ -69,22 +69,22 @@ export class ItemsApi extends BaseAPI {
   }
 
   getAttachments(id: string) {
-    return this.attachments.getAll("item", id);
+    return this.attachments.getAttachments("item", id);
   }
 
   addAttachment(id: string, file: File, filename: string, type?: AttachmentTypes, primary?: boolean) {
-    return this.attachments.add("item", id, file, filename, type, primary);
+    return this.attachments.addAttachment("item", id, file, filename, type, primary); 
   }
 
   updateAttachment(
     attachmentId: string,
     payload: { title?: string; type?: AttachmentTypes; primary?: boolean }
   ) {
-    return this.attachments.update(attachmentId, payload);
+    return this.attachments.updateAttachment(attachmentId, payload);
   }
 
   deleteAttachment(attachmentId: string) {
-    return this.attachments.delete(attachmentId);
+    return this.attachments.deleteAttachment(attachmentId);
   }
 
   fullpath(id: string) {

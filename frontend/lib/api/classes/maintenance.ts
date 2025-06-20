@@ -22,7 +22,7 @@ export class MaintenanceAPI extends BaseAPI {
   }
 
   getAttachments(id: string) {
-    return this.attachments.getAll("maintenance_entry", id);
+    return this.attachments.getAttachments("maintenance", id);
   }
 
   getAll(filters: MaintenanceFilters) {
@@ -43,18 +43,18 @@ export class MaintenanceAPI extends BaseAPI {
   }
 
   uploadAttachment(id: string, file: File, filename: string, type?: AttachmentTypes, primary?: boolean) {
-    return this.attachments.add("maintenance_entry", id, file, filename, type, primary);
+    return this.attachments.addAttachment("maintenance", id, file, filename, type, primary);
   }
 
   deleteAttachment(attachmentId: string) {
-    return this.attachments.delete(attachmentId);
+    return this.attachments.deleteAttachment(attachmentId);
   }
 
   updateAttachment(
     attachmentId: string,
     payload: { title?: string; type?: AttachmentTypes; primary?: boolean }
   ) {
-    return this.attachments.update(attachmentId, payload);
+    return this.attachments.updateAttachment(attachmentId, payload);
   }
 
 }

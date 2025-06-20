@@ -46,6 +46,17 @@ type (
 		Type    string
 		Primary bool
 	}
+	AttachmentOut struct {
+		ID          uuid.UUID `json:"id"`
+		CreatedAt   time.Time `json:"created_at"`
+		UpdatedAt   time.Time `json:"updated_at"`
+		Type        string    `json:"type"`
+		Primary     bool      `json:"primary"`
+		Path        string    `json:"path"`
+		Title       string    `json:"title"`
+		RelatedType string    `json:"related_type"`
+		RelatedID   uuid.UUID `json:"related_id"`
+	}
 )
 
 /* AttachmentRepo struct definition removed to avoid redeclaration error.
@@ -100,6 +111,8 @@ func (r *AttachmentRepo) Create(ctx context.Context, input AttachmentCreate) (*e
 	if err := os.WriteFile(filePath, buf.Bytes(), 0644); err != nil {
 		return nil, fmt.Errorf("failed to write file: %w", err)
 	}
+
+	fmt.Printf("📁 Opslaan op pad: %s\n", filePath)
 
 	// Maak het attachment record aan in de database
 	att, err := r.db.Attachment.

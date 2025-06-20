@@ -63,7 +63,7 @@
 
   function attachmentURL(attachmentId: string) {
     //return api.authURL(`/maintenance/${props.itemId}/attachments/${attachmentId}`);
-    return api.authURL(`/maintenance/${props.maintenanceEntryId}/attachments/${attachmentId}`); 
+    return api.authURL(`/maintenance/${props.maintenanceEntryId}/attachments/${attachmentId}`);  //path nog goed?
   }
 
 </script>

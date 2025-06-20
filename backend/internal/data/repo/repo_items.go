@@ -202,8 +202,12 @@ func mapItemSummary(item *ent.Item) ItemSummary {
 		}
 	}
 
+	//	var archivedAt *time.Time
+	//	if !item.ArchivedAt.IsZero() {
+	//		archivedAt = item.ArchivedAt
+	//	}
 	var archivedAt *time.Time
-	if !item.ArchivedAt.IsZero() {
+	if item.ArchivedAt != nil && !item.ArchivedAt.IsZero() {
 		archivedAt = item.ArchivedAt
 	}
 
@@ -363,8 +367,42 @@ func (e *ItemsRepository) GetByRef(ctx context.Context, gid uuid.UUID, ref strin
 
 // GetOneByGroup returns a single item by ID. If the item does not exist, an error is returned.
 // GetOneByGroup ensures that the item belongs to a specific group.
+//
+//	func (e *ItemsRepository) GetOneByGroup(ctx context.Context, gid, id uuid.UUID) (ItemOut, error) {
+//		return e.getOne(ctx, item.ID(id), item.HasGroupWith(group.ID(gid)))
+//	}
 func (e *ItemsRepository) GetOneByGroup(ctx context.Context, gid, id uuid.UUID) (ItemOut, error) {
-	return e.getOne(ctx, item.ID(id), item.HasGroupWith(group.ID(gid)))
+	item, err := e.getOne(ctx, item.ID(id), item.HasGroupWith(group.ID(gid)))
+	if err != nil {
+		return ItemOut{}, err
+	}
+
+	entAttachments, err := e.Attachments.ListByRelated(ctx, "item", item.ID) // 👈 hier dus
+	if err != nil {
+		return ItemOut{}, err
+	}
+
+	//item.Attachments = mapAttachmentsOut(entAttachments) // indien nodig transformeren naar je response type
+	//item.Attachments = entAttachments // mits types matchen
+	item.Attachments = mapAttachmentsOut(entAttachments)
+
+	return item, nil
+}
+
+func mapAttachmentsOut(input []*ent.Attachment) []Attachment {
+	out := make([]Attachment, len(input))
+	for i, att := range input {
+		out[i] = Attachment{
+			ID:        att.ID,
+			Title:     att.Title,
+			Type:      att.Type.String(),
+			Primary:   att.Primary,
+			CreatedAt: att.CreatedAt,
+			UpdatedAt: att.UpdatedAt,
+			// voeg hier toe wat je Attachment-struct vereist
+		}
+	}
+	return out
 }
 
 // QueryByGroup returns a list of items that belong to a specific group based on the provided query.

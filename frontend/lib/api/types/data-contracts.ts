@@ -59,6 +59,8 @@ export interface ItemAttachment {
   title: string;
   type: string;
   updatedAt: Date | string;
+  relatedId: string;
+
 }
 
 export interface ItemAttachmentUpdate {
@@ -130,6 +132,18 @@ export interface ItemOut {
   updatedAt: Date | string;
   warrantyDetails: string;
   warrantyExpires: Date | string;
+}
+
+export interface Attachment {
+  id: string;                    // UUID van de attachment
+  title: string;                 // bestandsnaam / titel
+  type: string;                  // 'photo', 'manual', etc.
+  path?: string;                 // optioneel pad op de server (meestal niet nodig in frontend)
+  related_type: string;          // bijv. 'items', 'maintenance_entries', etc.
+  related_id: string;            // UUID van het gerelateerde object
+  primary: boolean;              // of dit de primaire is
+  created_at?: string;           // als je timestamps gebruikt
+  updated_at?: string;
 }
 
 export interface ItemPatch {
@@ -491,7 +505,7 @@ export interface MaintenanceEntryAttachment {
   maintenanceEntryId: string;
   title?: string;
   type?: string;
-  primary?: boolean;
+  primary?: boolean; 
   // Voeg hier extra velden toe als je die nodig hebt, zoals:
   // title?: string;
   // size?: number;

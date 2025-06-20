@@ -8,10 +8,12 @@ import (
 	//	"strconv"
 	"strings"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"github.com/hay-kot/httpkit/errchain"
 	"github.com/hay-kot/httpkit/server"
 	"github.com/rs/zerolog/log"
+	"github.com/sysadminsmedia/homebox/backend/internal/data/ent"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/attachment"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/repo"
 	"github.com/sysadminsmedia/homebox/backend/internal/sys/validate"
@@ -106,6 +108,13 @@ func (ctrl *V1Controller) HandleAttachmentCreate() errchain.HandlerFunc {
 			return err
 		}
 
+		// 👇 hier de log toevoegen
+		log.Info().
+			Str("file", attachmentName).
+			Str("related_type", relatedType).
+			Str("related_id", relatedID).
+			Msg("Attachment upload received")
+
 		attachment, err := ctrl.repo.Attachments.Create(r.Context(), repo.AttachmentCreate{
 			RelatedType: relatedType,
 			RelatedID:   relatedUUID,
@@ -118,6 +127,11 @@ func (ctrl *V1Controller) HandleAttachmentCreate() errchain.HandlerFunc {
 			log.Err(err).Msg("failed to add attachment")
 			return validate.NewRequestError(err, http.StatusInternalServerError)
 		}
+		// Log the successful creation of the attachment
+		log.Info().
+			Interface("attachment", attachment).
+			Msg("Returning uploaded attachment")
+
 		return server.JSON(w, http.StatusCreated, attachment)
 	}
 }
@@ -194,26 +208,100 @@ func (ctrl *V1Controller) HandleAttachmentUpdate() errchain.HandlerFunc {
 //	@Success	200	{object}	[]repo.Attachment
 //	@Router		/v1/attachments [GET]
 //	@Security	Bearer
+//func (ctrl *V1Controller) HandleAttachmentList() errchain.HandlerFunc {
+//	return func(w http.ResponseWriter, r *http.Request) error {
+//		relatedType := r.URL.Query().Get("related_type")
+//		relatedIDStr := r.URL.Query().Get("related_id")
+//
+//		var relatedID uuid.UUID
+//		var err error
+//		if relatedIDStr != "" {
+//			relatedID, err = uuid.Parse(relatedIDStr)
+//			if err != nil {
+//				return validate.NewRequestError(errors.New("invalid related_id"), http.StatusBadRequest)
+//			}
+//		}
+//
+//		attachments, err := ctrl.repo.Attachments.ListByRelated(r.Context(), relatedType, relatedID)
+//		if err != nil {
+//			log.Err(err).Msg("failed to list attachments")
+//			return validate.NewRequestError(err, http.StatusInternalServerError)
+//		}
+//
+//		return server.JSON(w, http.StatusOK, WrapResults(attachments))
+//	}
+//}
+
 func (ctrl *V1Controller) HandleAttachmentList() errchain.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		relatedType := r.URL.Query().Get("related_type")
 		relatedIDStr := r.URL.Query().Get("related_id")
 
+		log.Info().Str("related_type", relatedType).Str("related_id", relatedIDStr).Msg("➡️ GET /attachments received")
+
 		var relatedID uuid.UUID
-		var err error
 		if relatedIDStr != "" {
-			relatedID, err = uuid.Parse(relatedIDStr)
+			parsed, err := uuid.Parse(relatedIDStr)
 			if err != nil {
+				log.Warn().Msg("❌ Ongeldige related_id")
 				return validate.NewRequestError(errors.New("invalid related_id"), http.StatusBadRequest)
 			}
+			relatedID = parsed
 		}
 
 		attachments, err := ctrl.repo.Attachments.ListByRelated(r.Context(), relatedType, relatedID)
 		if err != nil {
-			log.Err(err).Msg("failed to list attachments")
+			log.Err(err).Msg("❌ Failed to list attachments")
 			return validate.NewRequestError(err, http.StatusInternalServerError)
 		}
 
-		return server.JSON(w, http.StatusOK, WrapResults(attachments))
+		log.Info().Int("count", len(attachments)).Msg("✅ Attachments gevonden")
+
+		if attachments == nil {
+			attachments = []*ent.Attachment{}
+		}
+
+		// Mapping naar jouw eigen JSON-response structs (bijv. repo.Attachment)
+		attachmentOut := mapAttachmentsOut(attachments)
+
+		return server.JSON(w, http.StatusOK, WrapResults(attachmentOut))
+	}
+}
+
+func mapAttachmentsOut(input []*ent.Attachment) []repo.Attachment {
+	out := make([]repo.Attachment, len(input))
+	for i, att := range input {
+		out[i] = repo.Attachment{
+			ID:          att.ID,
+			Title:       att.Title,
+			Type:        att.Type.String(),
+			Primary:     att.Primary,
+			Path:        att.Path,
+			CreatedAt:   att.CreatedAt,
+			UpdatedAt:   att.UpdatedAt,
+			RelatedType: att.RelatedType,
+			RelatedID:   att.RelatedID,
+		}
+	}
+	return out
+}
+
+func (ctrl *V1Controller) HandleAttachmentDownload() errchain.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) error {
+		idStr := chi.URLParam(r, "id")
+		id, err := uuid.Parse(idStr)
+		if err != nil {
+			http.Error(w, "invalid ID", http.StatusBadRequest)
+			return nil
+		}
+
+		att, err := ctrl.repo.Attachments.Get(r.Context(), id)
+		if err != nil || att.Path == "" {
+			http.Error(w, "attachment not found", http.StatusNotFound)
+			return nil
+		}
+
+		http.ServeFile(w, r, att.Path)
+		return nil // geen foutmelding, download succesvol
 	}
 }
